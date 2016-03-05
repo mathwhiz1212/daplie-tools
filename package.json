@@ -1,0 +1,35 @@
+{
+  "name": "daplie-tools",
+  "version": "1.0.0-alpha",
+  "description": "Taking back the Internet",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Daplie/daplie-tools.git"
+  },
+  "keywords": [
+    "daplie",
+    "domains",
+    "dns",
+    "ddns",
+    "hosting"
+  ],
+  "author": "AJ ONeal <coolaj86@gmail.com> (https://coolaj86.com/)",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/Daplie/daplie-tools/issues"
+  },
+  "homepage": "https://github.com/Daplie/daplie-tools",
+  "dependencies": {
+    "bluebird": "^3.0.6",
+    "commander": "^2.9.0",
+    "oauth3": "git+https://github.com/OAuth3/node-oauth3.git",
+    "request": "^2.69.0"
+  }
+}
