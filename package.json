@@ -3,6 +3,9 @@
   "version": "1.0.0-alpha",
   "description": "Taking back the Internet",
   "main": "index.js",
+  "bin": {
+    "daplie": "./bin/daplie.js"
+  },
   "directories": {
     "example": "examples"
   },
