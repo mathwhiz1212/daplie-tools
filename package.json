@@ -32,7 +32,7 @@
   "dependencies": {
     "bluebird": "^3.0.6",
     "commander": "^2.9.0",
-    "oauth3": "git+https://github.com/OAuth3/node-oauth3.git",
+    "oauth3-cli": "git+https://github.com/OAuth3/oauth3-cli.git#components",
     "request": "^2.69.0"
   }
 }
