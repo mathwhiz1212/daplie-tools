@@ -137,7 +137,7 @@ else if ('domains:list' === cmd) {
     }).forEach(function (result) {
       // TODO find longest domainname for building table
     	console.log(
-        new Date(result.createdAt || 0).toLocaleString()
+        new Date(parseInt(result.createdAt, 10) || 0).toLocaleString()
       + '    '
       + ('$' + (result.amount / 100).toFixed(2))
       + '    '
