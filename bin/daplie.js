@@ -2,7 +2,7 @@
 
 'use strict';
 
-var oauth3 = require('oauth3');
+var oauth3 = require('oauth3-cli');
 var args = process.argv;
 var cmd = args.splice(2, 1)[0] || '';
 var cmd1 = cmd.split(/:/)[0];
