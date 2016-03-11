@@ -2,7 +2,7 @@
 
 var oauth3 = require('oauth3');
 var args = process.argv;
-var cmd = args.splice(2, 1)[0];
+var cmd = args.splice(2, 1)[0] || '';
 var cmd1 = cmd.split(/:/)[0];
 var cmd2 = cmd.split(/:/)[1];
 var helpme;
@@ -20,7 +20,7 @@ function help() {
   console.log("");
   //console.log("  accounts  #  manage accounts");
   console.log("  auth      #  authentication (login, logout)");
-  console.log("  domains   #  manage domains");
+  console.log("  domains   #  purchase and manage domains");
   console.log("  dns       #  manage dns");
   //console.log("  wallet    #  manage credit cards and balance");
   console.log("");
@@ -52,7 +52,7 @@ return;
 
 if (!cmd || -1 !== ['help', 'h', '--help', '-h', '?', '-?'].indexOf(cmd)) {
   helpme = true;
-  cmd = args.splice(2, 1)[0];
+  cmd = args.splice(2, 1)[0] || '';
   cmd1 = cmd.split(/:/)[0];
   cmd2 = cmd.split(/:/)[1];
   if (!cmd) {
@@ -151,7 +151,7 @@ else if ('domains:search' === cmd) {
     .usage('domains:search')
     .option('-d, --domains <values...>', 'Comma-separated list of domains to search')
     .option('-t, --tip <n>', 'A tip (in USD) in addition to the domain purchase price')
-    .option('--max-purchase-price <n>', 'Purchase domains in non-interactive mode if the total is at or below this purchase price (in USD).')
+    .option('--max-purchase-price <n>', 'Purchase domains in non-interactive mode if total <= n ($USD)')
     .parse(process.argv)
   ;
 
