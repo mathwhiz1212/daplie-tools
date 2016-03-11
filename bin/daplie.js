@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 'use strict';
 
 var oauth3 = require('oauth3');
