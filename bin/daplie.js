@@ -175,11 +175,23 @@ else if ('domains:search' === cmd) {
     console.log("$x.xx is fueling the future! Yay!");
   });
 }
-else if ('domains:token' === cmd) {
+else if ('dns' === cmd1 && !cmd2) {
+  console.log("");
+  console.log("Usage: daplie dns:COMMAND [command-specific-options]");
+  console.log("");
+  console.log('Primary help topics, type "daplie help dns:COMMAND" for more details:');
+  console.log("");
+  console.log("  dns:token        # retrieve a token for dns updates (i.e. for your ddns enabled router)");
+  console.log("  dns:set          # add a device or server to a domain name");
+  console.log("");
+  return;
+}
+
+else if ('dns:token' === cmd || 'domains:token' === cmd) {
   program
-    .usage('domains:token -n <domainname>')
+    .usage('dns:token -n <domainname>')
 		.option('-n, --name <value>', 'Specify a domainname / hostname')
-		.option('-d, --device <value>', 'Name of device / server that will use this token')
+		.option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
     .parse(process.argv)
   ;
 
@@ -196,7 +208,8 @@ else if ('domains:token' === cmd) {
     console.log('');
   });
 }
-else if ('dns:update' === cmd) {
+
+else if ('dns:set' === cmd) {
 	// daplie dns:device add <DEVICE NAME> <IPv4 or IPv6>
 	// daplie dns:device remove <DEVICE NAME> <IPv4 or IPv6>
 	// daplie dns:device reset <DEVICE NAME> <IPv4 or IPv6> // just one
@@ -210,16 +223,16 @@ else if ('dns:update' === cmd) {
 	// TODO update device by ip
 	// TODO add or remove device from domain
 	program
-    .usage('dns:update')
+    .usage('dns:set')
 		.option('-n, --name <value>', 'Specify a domainname / hostname')
-		.option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
+		.option('-d, --device <value>', 'Name of device associated with the answer')
 		.option(
 			'-t, --type <value>'
 		, 'Record type. One of: A, AAAA, ANAME, CNAME, FWD, MX, SRV, TXT'
 		, /^(A|AAAA|ANAME|CNAME|FWD|MX|SRV|TXT)$/i
 		)
+		.option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
 		.option('-p, --priority <n>', 'Priority (for MX record, only)')
-		.option('-d, --device <value>', 'Name of device associated with the answer')
 		.parse(process.argv)
 	;
 
@@ -228,7 +241,7 @@ else if ('dns:update' === cmd) {
     return;
   }
 
-  oauth3.domainsToken({
+  oauth3.updateDns({
     domain: program.name
 	, answer: program.answer
 	, type: program.type
@@ -237,6 +250,14 @@ else if ('dns:update' === cmd) {
   }).then(function (results) {
     console.log(results);
   });
+}
+else if ('device:set' === cmd) {
+  // set device + ip (for all associated domains)
+  console.error("'" + cmd + "' Not Implemented Yet!");
+}
+else if ('device:unset' === cmd) {
+  // unset device (and remove from all associated domains)
+  console.error("'" + cmd + "' Not Implemented Yet!");
 }
 else {
   console.error("'" + cmd + "' Not Implemented Yet!");
