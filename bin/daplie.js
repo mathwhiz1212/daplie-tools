@@ -3,6 +3,8 @@
 var oauth3 = require('oauth3');
 var args = process.argv;
 var cmd = args.splice(2, 1)[0];
+var cmd1 = cmd.split(/:/)[0];
+var cmd2 = cmd.split(/:/)[1];
 var helpme;
 var program = require('commander');
 var pkg = require('../package.json');
@@ -16,7 +18,7 @@ function help() {
   console.log("");
   console.log('Primary help topics, type "daplie help TOPIC" for more details:');
   console.log("");
-  console.log("  accounts  #  manage accounts");
+  //console.log("  accounts  #  manage accounts");
   console.log("  auth      #  authentication (login, logout)");
   console.log("  domains   #  manage domains");
   console.log("  dns       #  manage dns");
@@ -51,6 +53,8 @@ return;
 if (!cmd || -1 !== ['help', 'h', '--help', '-h', '?', '-?'].indexOf(cmd)) {
   helpme = true;
   cmd = args.splice(2, 1)[0];
+  cmd1 = cmd.split(/:/)[0];
+  cmd2 = cmd.split(/:/)[1];
   if (!cmd) {
     help();
     return;
@@ -62,18 +66,25 @@ if (-1 === ['accounts', 'auth', 'domains', 'dns', 'login'].indexOf(cmd.split(/:/
   return;
 }
 
+if ('auth' === cmd) {
+  console.log("");
+  console.log("Usage: daplie auth");
+  console.log("");
+  console.log("  Authenticate");
+  //console.log("  Authenticate, display token and current user");
+  console.log("");
+  console.log("Additional commands, type \"daplie help COMMAND\" for more details:");
+  console.log("");
+  console.log("  auth:login   #  log in with your heroku credentials");
+  //console.log("  auth:logout  #  clear local authentication credentials");
+  //console.log("  auth:token   #  display your api token");
+  //console.log("  auth:whoami  #  display your oauth3 email address");
+  console.log("");
+}
+
 if ('login' === cmd || 'auth:login' === cmd) {
 	program
-    .usage('dns:update')
-		.option('-n, --name <value>', 'Specify a domainname / hostname')
-		.option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
-		.option(
-			'-t, --type <value>'
-		, 'Record type. One of: A, AAAA, ANAME, CNAME, FWD, MX, SRV, TXT'
-		, /^(A|AAAA|ANAME|CNAME|FWD|MX|SRV|TXT)$/i
-		)
-		.option('-p, --priority <n>', 'Priority (for MX record, only)')
-		.option('-d, --device <value>', 'Name of device associated with the answer')
+    .usage('auth:login  # login through oauth3.org')
 		.parse(process.argv)
 	;
 
@@ -81,6 +92,7 @@ if ('login' === cmd || 'auth:login' === cmd) {
     program.help();
     return;
   }
+
   oauth3.manualLogin().then(function (results) {
     if (results && results.oauth3 && results.session && results.sessionTested) {
       console.log("Login completed successfully.");
@@ -94,7 +106,27 @@ if ('login' === cmd || 'auth:login' === cmd) {
     console.error(err.stack || err);
   });
 }
-else if ('domains' === cmd || 'domains:list' === cmd) {
+
+else if ('domains' === cmd1 && !cmd2) {
+  console.log("");
+  console.log("Usage: daplie domains:COMMAND [command-specific-options]");
+  console.log("");
+  console.log('Primary help topics, type "daplie help domains:COMMAND" for more details:');
+  console.log("");
+  console.log("  domains:list    # show domains purchased through daplie.domains");
+  console.log("  domains:search  # search and purchase domains through daplie.domains");
+  console.log("");
+  return;
+}
+
+else if ('domains:list' === cmd) {
+  if (helpme) {
+    console.log("");
+    console.log("  domains:list    # show domains purchased through daplie.domains");
+    console.log("");
+    return;
+  }
+
   oauth3.domains().then(function (results) {
 		results.sort(function (a, b) {
       if (a.domain < b.domain) {
@@ -115,7 +147,25 @@ else if ('domains' === cmd || 'domains:list' === cmd) {
   });
 }
 else if ('domains:search' === cmd) {
-  oauth3.purchaseDomain().then(function (results) {
+  program
+    .usage('domains:search')
+    .option('-d, --domains <values...>', 'Comma-separated list of domains to search')
+    .option('-t, --tip <n>', 'A tip (in USD) in addition to the domain purchase price')
+    .option('--max-purchase-price <n>', 'Purchase domains in non-interactive mode if the total is at or below this purchase price (in USD).')
+    .parse(process.argv)
+  ;
+
+  console.log(program.domains);
+
+  if (helpme) {
+    program.help();
+  }
+
+  oauth3.purchaseDomains({
+    domains: program.domains
+  , tip: program.tip
+  , 'max-purchase-price': program['max-purchase-price'] || program.maxPurchasePrice
+  }).then(function (results) {
     // TODO fix 2.9% on fee
     console.log('[make purchase result]');
     console.log(results);
