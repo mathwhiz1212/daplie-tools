@@ -77,14 +77,14 @@ if ('auth' === cmd) {
   console.log("");
   console.log("Additional commands, type \"daplie help COMMAND\" for more details:");
   console.log("");
-  console.log("  auth:login   #  log in with your heroku credentials");
+  console.log("  auth:login   #  log in with your daplie credentials");
   //console.log("  auth:logout  #  clear local authentication credentials");
   //console.log("  auth:token   #  display your api token");
   //console.log("  auth:whoami  #  display your oauth3 email address");
   console.log("");
 }
 
-if ('login' === cmd || 'auth:login' === cmd) {
+else if ('login' === cmd || 'auth:login' === cmd) {
 	program
     .usage('auth:login  # login through oauth3.org')
 		.parse(process.argv)
@@ -157,10 +157,9 @@ else if ('domains:search' === cmd) {
     .parse(process.argv)
   ;
 
-  console.log(program.domains);
-
   if (helpme) {
     program.help();
+    return;
   }
 
   oauth3.purchaseDomains({
@@ -177,8 +176,24 @@ else if ('domains:search' === cmd) {
   });
 }
 else if ('domains:token' === cmd) {
-  oauth3.domainsToken().then(function (results) {
-    console.log(results);
+  program
+    .usage('domains:token -n <domainname>')
+		.option('-n, --name <value>', 'Specify a domainname / hostname')
+		.option('-d, --device <value>', 'Name of device / server that will use this token')
+    .parse(process.argv)
+  ;
+
+  if (helpme || !program.name || !program.device) {
+    program.help();
+    return;
+  }
+
+  oauth3.domainsToken(program).then(function (results) {
+    console.log('');
+    console.log('DOMAIN NAME\tDEVICE NAME\t\tTOKEN');
+    console.log('');
+    console.log(program.name + '\t' + program.device + '\t' + results.token);
+    console.log('');
   });
 }
 else if ('dns:update' === cmd) {
