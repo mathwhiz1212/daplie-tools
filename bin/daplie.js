@@ -10,6 +10,7 @@ var cmd2 = cmd.split(/:/)[1];
 var helpme;
 var program = require('commander');
 var pkg = require('../package.json');
+var cliOptions = { provider: 'oauth3.org' };
 
 function help() {
   console.log("");
@@ -85,24 +86,28 @@ if ('auth' === cmd) {
 }
 
 else if ('login' === cmd || 'auth:login' === cmd) {
-	program
+  program
     .usage('auth:login  # login through oauth3.org')
-		.parse(process.argv)
-	;
+        .parse(process.argv)
+    ;
 
   if (helpme) {
     program.help();
     return;
   }
 
-  oauth3.manualLogin().then(function (results) {
+  oauth3.manualLogin(cliOptions).then(function (results) {
     if (results && results.oauth3 && results.session && results.sessionTested) {
-      console.log("Login completed successfully.");
+      // TODO
+      //console.log("Logged in as XYZ, using account ABC.");
+      console.log("");
+      console.log("Congrats, you're logged in!");
+      console.log("");
       return;
     }
 
-    console.error("Error with login:");
-    console.error(results);
+    console.error("Error: login object missing one or more of oauth3, session, sessionTested:");
+    console.error(Object.keys(results));
   }, function (err) {
     console.error("Error with login:");
     console.error(err.stack || err);
@@ -129,8 +134,8 @@ else if ('domains:list' === cmd) {
     return;
   }
 
-  oauth3.domains().then(function (results) {
-		results.sort(function (a, b) {
+  oauth3.domains(cliOptions).then(function (results) {
+        results.sort(function (a, b) {
       if (a.domain < b.domain) {
         return -1;
       } else {
@@ -138,14 +143,14 @@ else if ('domains:list' === cmd) {
       }
     }).forEach(function (result) {
       // TODO find longest domainname for building table
-    	console.log(
+        console.log(
         new Date(parseInt(result.createdAt, 10) || 0).toLocaleString()
       + '    '
       + ('$' + (result.amount / 100).toFixed(2))
       + '    '
       + (result.domain || result.sld + '.' + result.tld)
       );
-		});
+        });
   });
 }
 else if ('domains:search' === cmd) {
@@ -163,7 +168,8 @@ else if ('domains:search' === cmd) {
   }
 
   oauth3.purchaseDomains({
-    domains: program.domains
+    provider: cliOptions.provider
+  , domains: program.domains
   , tip: program.tip
   , 'max-purchase-price': program['max-purchase-price'] || program.maxPurchasePrice
   }).then(function (results) {
@@ -190,8 +196,8 @@ else if ('dns' === cmd1 && !cmd2) {
 else if ('dns:token' === cmd || 'domains:token' === cmd) {
   program
     .usage('dns:token -n <domainname>')
-		.option('-n, --name <value>', 'Specify a domainname / hostname')
-		.option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
+        .option('-n, --name <value>', 'Specify a domainname / hostname')
+        .option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
     .parse(process.argv)
   ;
 
@@ -200,6 +206,7 @@ else if ('dns:token' === cmd || 'domains:token' === cmd) {
     return;
   }
 
+  program.provider = cliOptions.provider;
   oauth3.domainsToken(program).then(function (results) {
     console.log('');
     console.log('DOMAIN NAME\tDEVICE NAME\t\tTOKEN');
@@ -210,31 +217,31 @@ else if ('dns:token' === cmd || 'domains:token' === cmd) {
 }
 
 else if ('dns:set' === cmd) {
-	// daplie dns:device add <DEVICE NAME> <IPv4 or IPv6>
-	// daplie dns:device remove <DEVICE NAME> <IPv4 or IPv6>
-	// daplie dns:device reset <DEVICE NAME> <IPv4 or IPv6> // just one
+    // daplie dns:device add <DEVICE NAME> <IPv4 or IPv6>
+    // daplie dns:device remove <DEVICE NAME> <IPv4 or IPv6>
+    // daplie dns:device reset <DEVICE NAME> <IPv4 or IPv6> // just one
 
-	// daplie dns:domain add <DOMAIN NAME> <TYPE> <DEVICE NAME> <TTL> <PRIORITY>
-	// daplie dns:domain remove <DOMAIN NAME> <DEVICE NAME>
-	// daplie dns:domain reset <DOMAIN NAME> <DEVICE NAME> // just one
+    // daplie dns:domain add <DOMAIN NAME> <TYPE> <DEVICE NAME> <TTL> <PRIORITY>
+    // daplie dns:domain remove <DOMAIN NAME> <DEVICE NAME>
+    // daplie dns:domain reset <DOMAIN NAME> <DEVICE NAME> // just one
 
-	// daplie dns:update
+    // daplie dns:update
 
-	// TODO update device by ip
-	// TODO add or remove device from domain
-	program
+    // TODO update device by ip
+    // TODO add or remove device from domain
+    program
     .usage('dns:set')
-		.option('-n, --name <value>', 'Specify a domainname / hostname')
-		.option('-d, --device <value>', 'Name of device associated with the answer')
-		.option(
-			'-t, --type <value>'
-		, 'Record type. One of: A, AAAA, ANAME, CNAME, FWD, MX, SRV, TXT'
-		, /^(A|AAAA|ANAME|CNAME|FWD|MX|SRV|TXT)$/i
-		)
-		.option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
-		.option('-p, --priority <n>', 'Priority (for MX record, only)')
-		.parse(process.argv)
-	;
+        .option('-n, --name <value>', 'Specify a domainname / hostname')
+        .option('-d, --device <value>', 'Name of device associated with the answer')
+        .option(
+            '-t, --type <value>'
+        , 'Record type. One of: A, AAAA, ANAME, CNAME, FWD, MX, SRV, TXT'
+        , /^(A|AAAA|ANAME|CNAME|FWD|MX|SRV|TXT)$/i
+        )
+        .option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
+        .option('-p, --priority <n>', 'Priority (for MX record, only)')
+        .parse(process.argv)
+    ;
 
   if (helpme || !(program.name && program.answer)) {
     program.help();
@@ -242,10 +249,11 @@ else if ('dns:set' === cmd) {
   }
 
   oauth3.updateDns({
-    domain: program.name
-	, answer: program.answer
-	, type: program.type
-	, priority: program.priority
+    provider: cliOptions.provider
+  , domain: program.name
+    , answer: program.answer
+    , type: program.type
+    , priority: program.priority
   , device: program.device || require('os').hostname()
   }).then(function (results) {
     console.log(results);
