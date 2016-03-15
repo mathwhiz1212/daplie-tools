@@ -135,7 +135,10 @@ else if ('domains:list' === cmd) {
   }
 
   oauth3.domains(cliOptions).then(function (results) {
-        results.sort(function (a, b) {
+    console.log('');
+    console.log('PURCHASED AT\t\tRENEWAL COST\tDOMAIN NAME');
+    console.log('');
+    results.sort(function (a, b) {
       if (a.domain < b.domain) {
         return -1;
       } else {
@@ -145,12 +148,13 @@ else if ('domains:list' === cmd) {
       // TODO find longest domainname for building table
         console.log(
         new Date(parseInt(result.createdAt, 10) || 0).toLocaleString()
-      + '    '
-      + ('$' + (result.amount / 100).toFixed(2))
-      + '    '
+      + '\t'
+      + ('$' + (result.amount / 100).toFixed(2)) + '\t'
+      + '\t'
       + (result.domain || result.sld + '.' + result.tld)
       );
-        });
+    });
+    console.log('');
   });
 }
 else if ('domains:search' === cmd) {
