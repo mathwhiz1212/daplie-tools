@@ -284,7 +284,7 @@ else if ('dns:set' === cmd) {
     // TODO update device by ip
     // TODO add or remove device from domain
     program
-    .usage('dns:set')
+    .usage('dns:set -n <domainname> -d <devicename> -a <answer>')
         .option('-n, --name <value>', 'Specify a domainname / hostname')
         .option('-d, --device <value>', 'Name of device associated with the answer')
         .option(
