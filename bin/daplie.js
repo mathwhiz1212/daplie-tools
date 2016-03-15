@@ -189,6 +189,7 @@ else if ('dns' === cmd1 && !cmd2) {
   console.log("");
   console.log("  dns:token        # retrieve a token for dns updates (i.e. for your ddns enabled router)");
   console.log("  dns:set          # add a device or server to a domain name");
+  console.log("  dns:list         # show all dns records for a given domain");
   console.log("");
   return;
 }
@@ -201,18 +202,67 @@ else if ('dns:token' === cmd || 'domains:token' === cmd) {
     .parse(process.argv)
   ;
 
-  if (helpme || !program.name || !program.device) {
+  if (helpme || !program.opts().name || !program.device) {
     program.help();
     return;
   }
 
   program.provider = cliOptions.provider;
-  oauth3.domainsToken(program).then(function (results) {
+  oauth3.domainsToken(program.opts()).then(function (results) {
     console.log('');
     console.log('DOMAIN NAME\tDEVICE NAME\t\tTOKEN');
     console.log('');
-    console.log(program.name + '\t' + program.device + '\t' + results.token);
+    console.log(program.opts().name + '\t' + program.device + '\t' + results.token);
     console.log('');
+  });
+}
+
+else if ('dns:list' === cmd) {
+  program
+    .usage('dns:list -n <domainname>')
+        .option('-n, --name <value>', 'Specify a domainname / hostname')
+    .parse(process.argv)
+  ;
+
+  if (helpme || !program.opts().name) {
+    program.help();
+    return;
+  }
+
+  program.provider = cliOptions.provider;
+  oauth3.getDns(program.opts()).then(function (results) {
+    results.records.sort(function (a, b) {
+      if (a.host > b.host) {
+        return 1;
+      } else if (a.host < b.host) {
+        return -1;
+      } else {
+        return 0;
+      }
+    });
+
+    console.log('');
+    console.log('UPDATED AT\t\tDOMAIN NAME\tDEVICE NAME\t\tTTL\tTYPE\tVALUE');
+    console.log('');
+    results.records.forEach(function (record) {
+      record.updatedAt = record.updatedAt || 0;
+      if (record.device.length < 10) {
+        record.device += '\t';
+      }
+      if ('MX' === record.type) {
+        record.type += ' (' + record.priority + ')';
+      }
+      console.log(
+        new Date(record.updatedAt).toLocaleString()
+      + '\t' + record.host
+      + '\t' + record.device
+      + '\t' + record.ttl
+      + '\t' + record.type
+      + '\t' + record.value
+      );
+    });
+    console.log('');
+    //console.log(Object.keys(results.records[0]));
   });
 }
 
@@ -243,14 +293,14 @@ else if ('dns:set' === cmd) {
         .parse(process.argv)
     ;
 
-  if (helpme || !(program.name && program.answer)) {
+  if (helpme || !(program.opts().name && program.answer)) {
     program.help();
     return;
   }
 
   oauth3.updateDns({
     provider: cliOptions.provider
-  , domain: program.name
+  , domain: program.opts().name
     , answer: program.answer
     , type: program.type
     , priority: program.priority
