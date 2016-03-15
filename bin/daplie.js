@@ -206,7 +206,7 @@ else if ('dns:token' === cmd || 'domains:token' === cmd) {
     .parse(process.argv)
   ;
 
-  if (helpme || !program.opts().name || !program.device) {
+  if (helpme || 'string' !== typeof program.opts().name || !program.device) {
     program.help();
     return;
   }
@@ -228,7 +228,7 @@ else if ('dns:list' === cmd) {
     .parse(process.argv)
   ;
 
-  if (helpme || !program.opts().name) {
+  if (helpme || 'string' !== typeof program.opts().name) {
     program.help();
     return;
   }
@@ -297,7 +297,7 @@ else if ('dns:set' === cmd) {
         .parse(process.argv)
     ;
 
-  if (helpme || !(program.opts().name && program.answer)) {
+  if (helpme || !('string' === typeof program.opts().name && program.answer)) {
     program.help();
     return;
   }
