@@ -64,7 +64,9 @@ if (!cmd || -1 !== ['help', 'h', '--help', '-h', '?', '-?'].indexOf(cmd)) {
   }
 }
 
-if (-1 === ['accounts', 'auth', 'domains', 'dns', 'login'].indexOf(cmd.split(/:/)[0])) {
+if (-1 === ['accounts', 'auth', 'domains', 'dns', 'login', 'devices'].indexOf(cmd.split(/:/)[0])) {
+  console.error('');
+  console.error("Unknown subcommand '" + cmd + "'");
   help();
   return;
 }
@@ -235,6 +237,12 @@ else if ('dns:list' === cmd) {
 
   program.provider = cliOptions.provider;
   oauth3.getDns(program.opts()).then(function (results) {
+    if (!results || !Array.isArray(results.records)) {
+      console.error("unexpected response:");
+      console.error(results);
+      process.exit(1);
+    }
+
     results.records.sort(function (a, b) {
       if (a.host > b.host) {
         return 1;
@@ -339,11 +347,11 @@ else if ('devices:list' === cmd) {
   }
 
   program.provider = cliOptions.provider;
-  oauth3.getDns(program.opts()).then(function (results) {
-    results.records.sort(function (a, b) {
-      if (a.host > b.host) {
+  oauth3.getDevices().then(function (results) {
+    results.devices.sort(function (a, b) {
+      if (a.name > b.name) {
         return 1;
-      } else if (a.host < b.host) {
+      } else if (a.name < b.name) {
         return -1;
       } else {
         return 0;
@@ -351,33 +359,49 @@ else if ('devices:list' === cmd) {
     });
 
     console.log('');
-    console.log('UPDATED AT\t\tDOMAIN NAME\tDEVICE NAME\t\tTTL\tTYPE\tVALUE');
+    //console.log('UPDATED AT\t\tDEVICE NAME\t\tTTL\tADDRESSES');
+    console.log('COMMITTED AT\t\tDEVICE NAME\tADDRESSES');
     console.log('');
-    results.records.forEach(function (record) {
-      record.updatedAt = record.updatedAt || 0;
-      if (record.device.length < 10) {
-        record.device += '\t';
-      }
-      if ('MX' === record.type) {
-        record.type += ' (' + record.priority + ')';
+    results.devices.forEach(function (device) {
+      device.committedAt = parseInt(device.committedAt || 0, 10);
+      if (device.name.length < 10) {
+        device.name += '\t';
       }
       console.log(
-        new Date(record.updatedAt).toLocaleString()
-      + '\t' + record.host
-      + '\t' + record.device
-      + '\t' + record.ttl
-      + '\t' + record.type
-      + '\t' + record.value
+        new Date(device.committedAt).toLocaleString()
+      + '\t' + device.name
+      //+ '\t' + device.ttl
+      + '\t' + device.addresses.map(function (addr) {
+          return addr.value;
+        }).join(',')
       );
     });
     console.log('');
-    //console.log(Object.keys(results.records[0]));
   });
 }
 
 else if ('devices:set' === cmd) {
   // set device + ip (for all associated domains)
-  console.error("'" + cmd + "' Not Implemented Yet!");
+  program
+    .usage('devices:set -d <devicename> -a <ip1,ip2,...>')
+    .option('-d, --device <value>', 'Name of device associated with the answer')
+    .option('-a, --addresses <ip1,ip2,...>', 'Comma-separated list of IPv4 and IPv6 addresses')
+    .option('--auto', "Use this device's hostname and ip address(es)")
+    .parse(process.argv)
+  ;
+
+  if (helpme || (!program.opts().auto && !(program.opts().device && program.opts().addresses))) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie devices:set -d localhost -a 127.0.0.1,::1');
+    console.log('');
+    return;
+  }
+
+  oauth3.setDevice(program.opts()).then(function (results) {
+    console.log('DEBUG devices:set results:');
+    console.log(results);
+  });
 }
 
 else if ('devices:unset' === cmd) {
