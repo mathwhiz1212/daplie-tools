@@ -331,6 +331,8 @@ else if ('devices' === cmd1 && !cmd2) {
   console.log("  devices:list     # show all devices (and ip addresses)");
   console.log("  devices:set      # add or update a device (and related dns records)");
   console.log("  devices:unset    # remove a device (and related dns records)");
+  //console.log("  devices:clone    # add all domain associations from a source device to a target device");
+  //console.log("  devices:pair    # make the two devices active clones of each other");
   console.log("");
   return;
 }
@@ -371,7 +373,7 @@ else if ('devices:list' === cmd) {
         new Date(device.committedAt).toLocaleString()
       + '\t' + device.name
       //+ '\t' + device.ttl
-      + '\t' + device.addresses.map(function (addr) {
+      + '\t' + (device.addresses||[]).map(function (addr) {
           return addr.value;
         }).join(',')
       );
@@ -386,7 +388,7 @@ else if ('devices:set' === cmd) {
     .usage('devices:set -d <devicename> -a <ip1,ip2,...>')
     .option('-d, --device <value>', 'Name of device associated with the answer')
     .option('-a, --addresses <ip1,ip2,...>', 'Comma-separated list of IPv4 and IPv6 addresses')
-    .option('--auto', "Use this device's hostname and ip address(es)")
+    //.option('--auto', "Use this device's hostname and ip address(es)")
     .parse(process.argv)
   ;
 
@@ -405,9 +407,83 @@ else if ('devices:set' === cmd) {
 }
 
 else if ('devices:unset' === cmd) {
-  // unset device (and remove from all associated domains)
-  console.error("'" + cmd + "' Not Implemented Yet!");
+  // set device + ip (for all associated domains)
+  program
+    .usage('devices:unset -d <devicename> --confirm delete')
+    .option('-d, --device <value>', 'Name of device associated with the answer')
+    .option('--confirm <delete>', 'Required to confirm that you will delete the device and ALL associated dns ip records')
+    .parse(process.argv)
+  ;
+
+  if (helpme || ('delete' !== program.opts().confirm || !program.opts().device)) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie devices:unset -d localhost --confirm delete');
+    console.log('');
+    return;
+  }
+
+  oauth3.deleteDevice(program.opts()).then(function (results) {
+    console.log('DEBUG devices:unset results:');
+    console.log(results);
+  });
 }
+
+else if ('devices:attach' === cmd) {
+  program
+    .usage('devices:attach -d <devicename> -n <domainname>')
+    .option('-d, --device <value>', 'Name of device to add')
+    .option('-n, --name <value>', 'Name of domain')
+    .option('-a, --addresses <ip1,ip2,...>'
+        , 'Update with comma-separated list of IPv4 and IPv6 addresses')
+    .option('--ttl <seconds>', 'time to live (default is 300 seconds - 5 minutes)')
+    //.option('-u, --update', "Also update the device to use this client's IP address")
+    .parse(process.argv)
+  ;
+
+  if (helpme || (!program.opts().device || !program.opts().device)) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie devices:attach -d localhost -n example.com');
+    console.log('');
+    return;
+  }
+
+  oauth3.addDeviceToDomain(program.opts()).then(function (results) {
+    console.log('DEBUG devices:attach results:');
+    console.log(results);
+  });
+
+  /*
+  .replace(/:device/, opts.device)
+  .replace(/:tld/, opts.tld)
+  .replace(/:sld/, opts.sld)
+  .replace(/:sub/, opts.sub || '.')
+  'update', 'ttl', 'priority', 'addresses'
+  */
+}
+
+/*
+else if ('devices:clone' === cmd) {
+  // for when you want to move copy all associated domains of one device to a new device
+  // TODO devices:pair - two-way continuous clone
+  // TODO devices:unpair
+  program
+    .usage('devices:clone -s <source-device> -t <target-device>')
+    .option('-s, --source-device <value>', 'The device from which current domain associations will be copied')
+    .option('-t, --target-device <value>', 'The (new) device to add to those domains')
+    .parse(process.argv)
+  ;
+
+  if (helpme || !(program.opts().sourceDevice && program.opts().targetDevice)) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie devices:clone -s old-device -t new-device');
+    console.log('');
+    return;
+  }
+}
+*/
 
 else {
   console.error("'" + cmd + "' Not Implemented Yet!");
