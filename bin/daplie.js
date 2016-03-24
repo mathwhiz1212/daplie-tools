@@ -195,6 +195,7 @@ else if ('dns' === cmd1 && !cmd2) {
   console.log("");
   console.log("  dns:token        # retrieve a token for dns updates (i.e. for your ddns enabled router)");
   console.log("  dns:set          # add a device or server to a domain name");
+  console.log("  dns:unset        # remove a device or server from a domain name");
   console.log("  dns:list         # show all dns records for a given domain");
   console.log("");
   return;
@@ -304,20 +305,23 @@ else if ('dns:set' === cmd) {
   // TODO update device by ip
   // TODO add or remove device from domain
   program
-    .usage('dns:set -n <domainname> -d <devicename> -a <answer>')
+    .usage('dns:set -n <domainname> -t <type> -a <answer>')
     .option('-n, --name <value>', 'Specify a domainname / hostname')
-    .option('-d, --device <value>', 'Name of device associated with the answer')
+    //.option('-d, --device <value>', 'Name of device associated with the answer')
     .option(
-        '-t, --type <value>'
-    , 'Record type. One of: A, AAAA, ANAME, CNAME, FWD, MX, SRV, TXT'
-    , /^(A|AAAA|ANAME|CNAME|FWD|MX|SRV|TXT)$/i
+      '-t, --type <value>'
+    , 'Record type. One of: ANAME, CNAME, FWD, MX, SRV, TXT'
+    //, 'Record type. One of: A, AAAA, ANAME, CNAME, DEV, FWD, MX, SRV, TXT'
+    , /^(ANAME|CNAME|FWD|MX|SRV|TXT)$/i
+    //, /^(A|AAAA|ANAME|CNAME|DEV|FWD|MX|SRV|TXT)$/i
     )
     .option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
+    .option('--ttl <seconds>', 'time to live (default is 300 seconds - 5 minutes)')
     .option('-p, --priority <n>', 'Priority (for MX record, only)')
     .parse(process.argv)
   ;
 
-  if (helpme || !('string' === typeof program.opts().name && program.answer)) {
+  if (helpme || !('string' === typeof program.opts().name && program.type && program.answer)) {
     program.help();
     return;
   }
