@@ -221,7 +221,7 @@ else if ('dns:token' === cmd || 'domains:token' === cmd) {
     console.log('');
     console.log('Set your DDNS client to use this URL:');
     console.log('');
-    console.log('GET https://oauth3.org/api/com.enom.reseller/ddns?token=' + results.token);
+    console.log('https://oauth3.org/api/com.enom.reseller/ddns?token=' + results.token);
     console.log('');
   });
 }
