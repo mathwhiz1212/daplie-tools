@@ -226,17 +226,26 @@ else if ('dns:token' === cmd || 'domains:token' === cmd) {
 else if ('dns:list' === cmd) {
   program
     .usage('dns:list -n <domainname>')
-        .option('-n, --name <value>', 'Specify a domainname / hostname')
+    .option('-n, --name <value>', 'Specify a domainname / hostname')
+    .option('--all', 'Show all dns records for this account')
     .parse(process.argv)
   ;
 
-  if (helpme || 'string' !== typeof program.opts().name) {
+  if (helpme || (!program.opts().all && 'string' !== typeof program.opts().name)) {
     program.help();
     return;
   }
 
+  var promise;
+
   program.provider = cliOptions.provider;
-  oauth3.getDns(program.opts()).then(function (results) {
+  if (program.opts().all) {
+    promise = oauth3.allDns(program.opts());
+  }
+  else {
+    promise = oauth3.getDns(program.opts());
+  }
+  promise.then(function (results) {
     if (!results || !Array.isArray(results.records)) {
       console.error("unexpected response:");
       console.error(results);
@@ -257,7 +266,7 @@ else if ('dns:list' === cmd) {
     console.log('UPDATED AT\t\tDOMAIN NAME\tDEVICE NAME\t\tTTL\tTYPE\tVALUE');
     console.log('');
     results.records.forEach(function (record) {
-      record.updatedAt = record.updatedAt || 0;
+      record.updatedAt = parseInt(record.updatedAt, 10) || 0;
       if (record.device.length < 10) {
         record.device += '\t';
       }
@@ -279,31 +288,31 @@ else if ('dns:list' === cmd) {
 }
 
 else if ('dns:set' === cmd) {
-    // daplie dns:device add <DEVICE NAME> <IPv4 or IPv6>
-    // daplie dns:device remove <DEVICE NAME> <IPv4 or IPv6>
-    // daplie dns:device reset <DEVICE NAME> <IPv4 or IPv6> // just one
+  // daplie dns:device add <DEVICE NAME> <IPv4 or IPv6>
+  // daplie dns:device remove <DEVICE NAME> <IPv4 or IPv6>
+  // daplie dns:device reset <DEVICE NAME> <IPv4 or IPv6> // just one
 
-    // daplie dns:domain add <DOMAIN NAME> <TYPE> <DEVICE NAME> <TTL> <PRIORITY>
-    // daplie dns:domain remove <DOMAIN NAME> <DEVICE NAME>
-    // daplie dns:domain reset <DOMAIN NAME> <DEVICE NAME> // just one
+  // daplie dns:domain add <DOMAIN NAME> <TYPE> <DEVICE NAME> <TTL> <PRIORITY>
+  // daplie dns:domain remove <DOMAIN NAME> <DEVICE NAME>
+  // daplie dns:domain reset <DOMAIN NAME> <DEVICE NAME> // just one
 
-    // daplie dns:update
+  // daplie dns:update
 
-    // TODO update device by ip
-    // TODO add or remove device from domain
-    program
+  // TODO update device by ip
+  // TODO add or remove device from domain
+  program
     .usage('dns:set -n <domainname> -d <devicename> -a <answer>')
-        .option('-n, --name <value>', 'Specify a domainname / hostname')
-        .option('-d, --device <value>', 'Name of device associated with the answer')
-        .option(
-            '-t, --type <value>'
-        , 'Record type. One of: A, AAAA, ANAME, CNAME, FWD, MX, SRV, TXT'
-        , /^(A|AAAA|ANAME|CNAME|FWD|MX|SRV|TXT)$/i
-        )
-        .option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
-        .option('-p, --priority <n>', 'Priority (for MX record, only)')
-        .parse(process.argv)
-    ;
+    .option('-n, --name <value>', 'Specify a domainname / hostname')
+    .option('-d, --device <value>', 'Name of device associated with the answer')
+    .option(
+        '-t, --type <value>'
+    , 'Record type. One of: A, AAAA, ANAME, CNAME, FWD, MX, SRV, TXT'
+    , /^(A|AAAA|ANAME|CNAME|FWD|MX|SRV|TXT)$/i
+    )
+    .option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
+    .option('-p, --priority <n>', 'Priority (for MX record, only)')
+    .parse(process.argv)
+  ;
 
   if (helpme || !('string' === typeof program.opts().name && program.answer)) {
     program.help();
@@ -313,9 +322,9 @@ else if ('dns:set' === cmd) {
   oauth3.updateDns({
     provider: cliOptions.provider
   , domain: program.opts().name
-    , answer: program.answer
-    , type: program.type
-    , priority: program.priority
+  , answer: program.answer
+  , type: program.type
+  , priority: program.priority
   , device: program.device || require('os').hostname()
   }).then(function (results) {
     console.log(results);
@@ -436,8 +445,7 @@ else if ('devices:attach' === cmd) {
     .option('-n, --name <value>', 'Name of domain')
     .option('-a, --addresses <ip1,ip2,...>'
         , 'Update with comma-separated list of IPv4 and IPv6 addresses')
-    .option('--ttl <seconds>', 'time to live (default is 300 seconds - 5 minutes)')
-    //.option('-u, --update', "Also update the device to use this client's IP address")
+    //.option('--ttl <seconds>', 'time to live (default is 300 seconds - 5 minutes)')
     .parse(process.argv)
   ;
 
@@ -453,14 +461,28 @@ else if ('devices:attach' === cmd) {
     console.log('DEBUG devices:attach results:');
     console.log(results);
   });
+}
 
-  /*
-  .replace(/:device/, opts.device)
-  .replace(/:tld/, opts.tld)
-  .replace(/:sld/, opts.sld)
-  .replace(/:sub/, opts.sub || '.')
-  'update', 'ttl', 'priority', 'addresses'
-  */
+else if ('devices:detach' === cmd) {
+  program
+    .usage('devices:detach -d <devicename> -n <domainname>')
+    .option('-d, --device <value>', 'Name of device to add')
+    .option('-n, --name <value>', 'Name of domain')
+    .parse(process.argv)
+  ;
+
+  if (helpme || (!program.opts().device || !program.opts().device)) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie devices:detach -d localhost -n example.com');
+    console.log('');
+    return;
+  }
+
+  oauth3.detachDevice(program.opts()).then(function (results) {
+    console.log('DEBUG devices:detach results:');
+    console.log(results);
+  });
 }
 
 /*
