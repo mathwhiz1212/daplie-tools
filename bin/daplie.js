@@ -203,22 +203,25 @@ else if ('dns' === cmd1 && !cmd2) {
 else if ('dns:token' === cmd || 'domains:token' === cmd) {
   program
     .usage('dns:token -n <domainname>')
-        .option('-n, --name <value>', 'Specify a domainname / hostname')
-        .option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
+    .option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
     .parse(process.argv)
   ;
 
-  if (helpme || 'string' !== typeof program.opts().name || !program.device) {
+  if (helpme || 'string' !== typeof program.device) {
     program.help();
     return;
   }
 
   program.provider = cliOptions.provider;
   oauth3.domainsToken(program.opts()).then(function (results) {
+    //console.log('');
+    //console.log('DEVICE NAME\t\tTOKEN');
+    //console.log('');
+    //console.log(program.device + '\t' + results.token);
     console.log('');
-    console.log('DOMAIN NAME\tDEVICE NAME\t\tTOKEN');
+    console.log('Set your DDNS client to use this URL:');
     console.log('');
-    console.log(program.opts().name + '\t' + program.device + '\t' + results.token);
+    console.log('GET https://oauth3.org/api/com.enom.reseller/ddns?token=' + results.token);
     console.log('');
   });
 }
