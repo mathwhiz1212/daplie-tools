@@ -331,8 +331,36 @@ else if ('dns:set' === cmd) {
   , domain: program.opts().name
   , answer: program.answer
   , type: program.type
+  , ttl: program.ttl
   , priority: program.priority
-  , device: program.device || require('os').hostname()
+  }).then(function (results) {
+    console.log(results);
+  });
+}
+
+else if ('dns:unset' === cmd) {
+  program
+    .usage('dns:unset -n <domainname> -t <type> -a <answer>')
+    .option('-n, --name <value>', 'Specify a domainname / hostname')
+    .option(
+      '-t, --type <value>'
+    , 'Record type. One of: ANAME, CNAME, FWD, MX, SRV, TXT'
+    , /^(ANAME|CNAME|FWD|MX|SRV|TXT)$/i
+    )
+    .option('-a, --answer <value>', 'The value of IPv4, IPv6, CNAME, or ANAME')
+    .parse(process.argv)
+  ;
+
+  if (helpme || !('string' === typeof program.opts().name && program.type && program.answer)) {
+    program.help();
+    return;
+  }
+
+  oauth3.removeDns({
+    provider: cliOptions.provider
+  , domain: program.opts().name
+  , answer: program.answer
+  , type: program.type
   }).then(function (results) {
     console.log(results);
   });
