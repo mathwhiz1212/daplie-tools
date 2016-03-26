@@ -5,12 +5,23 @@
 var oauth3 = require('oauth3-cli');
 var args = process.argv;
 var cmd = args.splice(2, 1)[0] || '';
-var cmd1 = cmd.split(/:/)[0];
-var cmd2 = cmd.split(/:/)[1];
+var myCmds = cmd.split(/:/);
+var cmd1 = myCmds[0];
+var cmd2 = myCmds[1];
 var helpme;
 var program = require('commander');
 var pkg = require('../package.json');
 var cliOptions = { provider: 'oauth3.org' };
+var cmds;
+
+function pad(n) {
+  n = n.toString();
+  while (n.length < 2) {
+    n = '0' + n;
+  }
+
+  return n;
+}
 
 function help() {
   console.log("");
@@ -22,10 +33,11 @@ function help() {
   console.log('Primary help topics, type "daplie help TOPIC" for more details:');
   console.log("");
   //console.log("  accounts  #  manage accounts");
-  console.log("  auth      #  authentication (login, logout)");
-  console.log("  domains   #  purchase and manage domains");
-  console.log("  dns       #  manage dns");
-  //console.log("  wallet    #  manage credit cards and balance");
+  console.log("  auth       #  authentication (login, logout)");
+  console.log("  devices    #  manage IP devices");
+  console.log("  dns        #  manage dns");
+  console.log("  domains    #  purchase and manage domains");
+  console.log("  wallet     #  see and manage funding sources (credit cards)"); // and balance
   console.log("");
   console.log("Additional topics:");
   console.log("");
@@ -56,15 +68,24 @@ return;
 if (!cmd || -1 !== ['help', 'h', '--help', '-h', '?', '-?'].indexOf(cmd)) {
   helpme = true;
   cmd = args.splice(2, 1)[0] || '';
-  cmd1 = cmd.split(/:/)[0];
-  cmd2 = cmd.split(/:/)[1];
+  cmd1 = myCmds[0];
+  cmd2 = myCmds[1];
   if (!cmd) {
     help();
     return;
   }
 }
 
-if (-1 === ['accounts', 'auth', 'domains', 'dns', 'login', 'devices'].indexOf(cmd.split(/:/)[0])) {
+cmds = [
+  'accounts'
+, 'auth'
+, 'devices'
+, 'dns'
+, 'domains'
+, 'login'
+, 'wallet'
+];
+if (-1 === cmds.indexOf(cmd.split(/:/)[0])) {
   console.error('');
   console.error("Unknown subcommand '" + cmd + "'");
   help();
@@ -444,6 +465,7 @@ else if ('devices:set' === cmd) {
     return;
   }
 
+  program.provider = cliOptions.provider;
   oauth3.setDevice(program.opts()).then(function (results) {
     console.log('DEBUG devices:set results:');
     console.log(results);
@@ -467,6 +489,7 @@ else if ('devices:unset' === cmd) {
     return;
   }
 
+  program.provider = cliOptions.provider;
   oauth3.deleteDevice(program.opts()).then(function (results) {
     console.log('DEBUG devices:unset results:');
     console.log(results);
@@ -492,6 +515,7 @@ else if ('devices:attach' === cmd) {
     return;
   }
 
+  program.provider = cliOptions.provider;
   oauth3.addDeviceToDomain(program.opts()).then(function (results) {
     console.log('DEBUG devices:attach results:');
     console.log(results);
@@ -506,7 +530,7 @@ else if ('devices:detach' === cmd) {
     .parse(process.argv)
   ;
 
-  if (helpme || (!program.opts().device || !program.opts().device)) {
+  if (helpme || (!program.opts().device || !program.opts().name)) {
     program.help();
     console.log('');
     console.log('Example: daplie devices:detach -d localhost -n example.com');
@@ -514,6 +538,7 @@ else if ('devices:detach' === cmd) {
     return;
   }
 
+  program.provider = cliOptions.provider;
   oauth3.detachDevice(program.opts()).then(function (results) {
     console.log('DEBUG devices:detach results:');
     console.log(results);
@@ -541,6 +566,141 @@ else if ('devices:clone' === cmd) {
   }
 }
 */
+
+else if ('wallet' === cmd) {
+  console.log("");
+  console.log("Usage: daplie wallet:COMMAND [command-specific-options]");
+  console.log("");
+  console.log('Primary help topics, type "daplie help wallet:COMMAND" for more details:');
+  console.log("");
+  console.log("  wallet:sources           # show all funding sources");
+  console.log("  wallet:sources:add       # add a new credit card");
+  console.log("  wallet:sources:remove    # remove a credit card");
+  console.log("");
+  return;
+}
+
+else if ('wallet:sources' === cmd) {
+  program.provider = cliOptions.provider;
+  oauth3.Cards.list(program.opts()).then(function (results) {
+    var cards = results.results || results;
+
+    console.log('');
+    console.log('BRAND\tLAST 4\tEXPIRES AT');
+    console.log('');
+    cards.forEach(function (card) {
+      console.log(
+        (card.brand||'')
+          .replace(/American Express/i, 'AMEX')
+          .replace(/MasterCard/i, 'MC')
+          .replace(/Discover/i, 'Disc')
+      + '\t' + card.last4 // TODO xxxx-xxxx-xxxx-abcd
+      + '\t' + pad(card.exp_month) + '/' + String(card.exp_year).slice(2)
+      );
+    });
+    console.log('');
+  });
+}
+
+else if ('wallet:sources:add' === cmd) {
+  program
+    .usage('wallet:sources:add')
+    .option('--cc-number <value>', 'Credit Card number (xxxx-xxxx-xxxx-xxxx)')
+    .option('--cc-exp <value>', 'Credit Card expiration (mm/yy)')
+    .option('--cc-cvc <value>', 'Credit Card Verification Code (xxx)')
+    .option('--cc-email <value>', 'Credit Card email (xxxxxx@xxxx.xxx)')
+    .option('--cc-nick <value>', 'Credit Card nickname (defaults to email)')
+    //.option('--cc- <value>', '')
+    .parse(process.argv)
+  ;
+
+  if (helpme) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie wallet:sources:add');
+    console.log('');
+    return;
+  }
+
+  program.provider = cliOptions.provider;
+  oauth3.Cards.add(program.opts()).then(function (card1) {
+    return oauth3.Cards.list(program.opts()).then(function (results) {
+      var cards = results.results || results;
+      console.log('');
+      console.log('BRAND\tLAST 4\tEXPIRES AT');
+      console.log('');
+      cards.forEach(function (card) {
+        if (card1.brand === card.brand && card1.exp === card.exp) {
+          card.brand += '*';
+        }
+        console.log(
+          card.brand
+            .replace(/American Express/i, 'AMEX')
+            .replace(/MasterCard/i, 'MC')
+            .replace(/Discover/i, 'Disc')
+        + '\t' + card.last4 // TODO xxxx-xxxx-xxxx-abcd
+        + '\t' + pad(card.exp_month) + '/' + String(card.exp_year).slice(2)
+        );
+      });
+      console.log('');
+    });
+  });
+}
+
+else if ('wallet:sources:remove' === cmd) {
+  program
+    .usage('wallet:sources:remove --last4 <xxxx>')
+    .option('--last4 <value>', 'Last 4 of credit card (xxxx-xxxx-xxxx-XXXXX)')
+    .option('--brand <value>', 'Card brand (Visa, MC, AMEX, Disc, etc)')
+    .option('--exp <value>', 'Card expiration (mm/yy)')
+    //.option('--cc- <value>', '')
+    .parse(process.argv)
+  ;
+
+  if (helpme) {
+    program.help();
+    console.log('');
+    console.log("Example: daplie wallet:sources:remove --brand 'American Express' --last4 4321 --exp 01/35");
+    console.log('');
+    return;
+  }
+
+  if (program.opts().brand) {
+    if ('amex' === program.opts().brand.toLowerCase()) {
+      program.brand = 'American Express';
+    }
+    else if ('mc' === program.opts().brand.toLowerCase()) {
+      program.brand = 'MasterCard';
+    }
+    else if ('disc' === program.opts().brand.toLowerCase()) {
+      program.brand = 'Discover';
+    }
+    else if (/^(dci|diner)/i.test(program.opts().brand)) {
+      program.brand = 'Diners Club';
+    }
+  }
+
+  program.provider = cliOptions.provider;
+  oauth3.Cards.remove(program.opts()).then(function (/*deletedCard*/) {
+    return oauth3.Cards.list(program.opts()).then(function (results) {
+      var cards = results.results || results;
+      console.log('');
+      console.log('BRAND\tLAST 4\tEXPIRES AT');
+      console.log('');
+      cards.forEach(function (card) {
+        console.log(
+          card.brand
+            .replace(/American Express/i, 'AMEX')
+            .replace(/MasterCard/i, 'MC')
+            .replace(/Discover/i, 'Disc')
+        + '\t' + card.last4 // TODO xxxx-xxxx-xxxx-abcd
+        + '\t' + pad(card.exp_month) + '/' + String(card.exp_year).slice(2)
+        );
+      });
+      console.log('');
+    });
+  });
+}
 
 else {
   console.error("'" + cmd + "' Not Implemented Yet!");
