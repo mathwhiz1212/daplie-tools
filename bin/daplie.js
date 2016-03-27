@@ -92,6 +92,40 @@ if (-1 === cmds.indexOf(cmd.split(/:/)[0])) {
   return;
 }
 
+function listCards(opts, card1) {
+  return oauth3.Cards.list(opts).then(function (results) {
+    var cards = results.results || results;
+    console.log('');
+    console.log('PRIORITY\tBRAND\tLAST 4\tEXPIRES\tDEFAULT\tNICK\t\tCOMMENT');
+    console.log('');
+    cards.forEach(function (card) {
+      var brand = card.brand
+        .replace(/American Express/i, 'AMEX')
+        .replace(/MasterCard/i, 'MC')
+        .replace(/Discover/i, 'Disc')
+      ;
+      var isDefault = '      ';
+      if (card1 && card1.brand === card.brand && card1.exp === card.exp) {
+        brand = '^' + brand;
+      }
+      if (card.default) {
+        //brand += '*';
+        isDefault = '  YES  ';
+      }
+      console.log(
+        (card.priority || 'ERR')
+      + '\t\t' + brand
+      + '\t' + card.last4 // TODO xxxx-xxxx-xxxx-abcd
+      + '\t' + pad(card.exp_month) + '/' + String(card.exp_year).slice(2)
+      + '\t' + isDefault
+      + '\t' + (card.nick || '')
+      + '\t' + (card.comment || '')
+      );
+    });
+    console.log('');
+  });
+}
+
 if ('auth' === cmd) {
   console.log("");
   console.log("Usage: daplie auth");
@@ -576,30 +610,17 @@ else if ('wallet' === cmd) {
   console.log("  wallet:sources           # show all funding sources");
   console.log("  wallet:sources:add       # add a new credit card");
   console.log("  wallet:sources:remove    # remove a credit card");
+  console.log("  wallet:sources:update    # set the default (or the priority)");
+  //console.log("  wallet:sources:default   # alias of wallet:sources:update --default");
   console.log("");
   return;
 }
 
 else if ('wallet:sources' === cmd) {
   program.provider = cliOptions.provider;
-  oauth3.Cards.list(program.opts()).then(function (results) {
-    var cards = results.results || results;
+  var opts = program.opts();
 
-    console.log('');
-    console.log('BRAND\tLAST 4\tEXPIRES AT');
-    console.log('');
-    cards.forEach(function (card) {
-      console.log(
-        (card.brand||'')
-          .replace(/American Express/i, 'AMEX')
-          .replace(/MasterCard/i, 'MC')
-          .replace(/Discover/i, 'Disc')
-      + '\t' + card.last4 // TODO xxxx-xxxx-xxxx-abcd
-      + '\t' + pad(card.exp_month) + '/' + String(card.exp_year).slice(2)
-      );
-    });
-    console.log('');
-  });
+  listCards(opts, null);
 }
 
 else if ('wallet:sources:add' === cmd) {
@@ -610,6 +631,10 @@ else if ('wallet:sources:add' === cmd) {
     .option('--cc-cvc <value>', 'Credit Card Verification Code (xxx)')
     .option('--cc-email <value>', 'Credit Card email (xxxxxx@xxxx.xxx)')
     .option('--cc-nick <value>', 'Credit Card nickname (defaults to email)')
+
+    .option('--priority <n>', 'Manually set the priority (where 100 is high, 1000 is low)')
+    .option('--nick <value>', 'Choose a new nickname for this card')
+    .option('--comment <value>', 'Set an arbirtrary comment for this card')
     //.option('--cc- <value>', '')
     .parse(process.argv)
   ;
@@ -622,28 +647,65 @@ else if ('wallet:sources:add' === cmd) {
     return;
   }
 
+  var opts = program.opts();
+  opts.ccPriority = opts.priority;
+  opts.ccNick = opts.nick;
+  opts.ccComment = opts.comment;
   program.provider = cliOptions.provider;
   oauth3.Cards.add(program.opts()).then(function (card1) {
-    return oauth3.Cards.list(program.opts()).then(function (results) {
-      var cards = results.results || results;
-      console.log('');
-      console.log('BRAND\tLAST 4\tEXPIRES AT');
-      console.log('');
-      cards.forEach(function (card) {
-        if (card1.brand === card.brand && card1.exp === card.exp) {
-          card.brand += '*';
-        }
-        console.log(
-          card.brand
-            .replace(/American Express/i, 'AMEX')
-            .replace(/MasterCard/i, 'MC')
-            .replace(/Discover/i, 'Disc')
-        + '\t' + card.last4 // TODO xxxx-xxxx-xxxx-abcd
-        + '\t' + pad(card.exp_month) + '/' + String(card.exp_year).slice(2)
-        );
-      });
-      console.log('');
-    });
+    return listCards(opts, card1);
+  });
+}
+
+else if ('wallet:sources:update' === cmd) {
+  program
+    .usage('wallet:sources:update --last4 <xxxx>')
+    .option('--last4 <value>', 'Last 4 of credit card (xxxx-xxxx-xxxx-XXXXX)')
+
+    .option('--comment <value>', 'Set an arbirtrary comment for this card')
+    .option('--default', 'Set this card as default (sets priority to highest)')
+    //.option('--exp <value>', 'Update the expiration date (and re-test card authorization)')
+    //.option('--new-nick <value>', 'Choose a new nickname for this card')
+    //.option('--email <value>', 'Choose a new receipt email for this card')
+    .option('--nick <value>', 'Choose a new nickname for this card')
+    .option('--priority <n>', 'Manually set the priority (where 100 is high, 1000 is low)')
+    .parse(process.argv)
+  ;
+
+  var opts = program.opts();
+  if (helpme
+    || !(opts.last4)
+    || !(opts.default || opts.priority || opts.nick || opts.comment || opts.exp)
+  ) {
+    program.help();
+    console.log('');
+    console.log("Example: daplie wallet:sources:update --last4 4321");
+    console.log('');
+    return;
+  }
+
+  var opts = program.opts();
+  opts.ccPriority = opts.priority;
+  opts.ccNick = opts.nick;
+  opts.ccComment = opts.comment;
+  if (opts.brand) {
+    if ('amex' === opts.brand.toLowerCase()) {
+      program.brand = 'American Express';
+    }
+    else if ('mc' === opts.brand.toLowerCase()) {
+      program.brand = 'MasterCard';
+    }
+    else if ('disc' === opts.brand.toLowerCase()) {
+      program.brand = 'Discover';
+    }
+    else if (/^(dci|diner)/i.test(opts.brand)) {
+      program.brand = 'Diners Club';
+    }
+  }
+
+  opts.provider = cliOptions.provider;
+  oauth3.Cards.update(opts).then(function (updatedCard) {
+    return listCards(opts, null);
   });
 }
 
@@ -682,23 +744,7 @@ else if ('wallet:sources:remove' === cmd) {
 
   program.provider = cliOptions.provider;
   oauth3.Cards.remove(program.opts()).then(function (/*deletedCard*/) {
-    return oauth3.Cards.list(program.opts()).then(function (results) {
-      var cards = results.results || results;
-      console.log('');
-      console.log('BRAND\tLAST 4\tEXPIRES AT');
-      console.log('');
-      cards.forEach(function (card) {
-        console.log(
-          card.brand
-            .replace(/American Express/i, 'AMEX')
-            .replace(/MasterCard/i, 'MC')
-            .replace(/Discover/i, 'Disc')
-        + '\t' + card.last4 // TODO xxxx-xxxx-xxxx-abcd
-        + '\t' + pad(card.exp_month) + '/' + String(card.exp_year).slice(2)
-        );
-      });
-      console.log('');
-    });
+    return listCards(opts, null);
   });
 }
 
