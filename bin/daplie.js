@@ -32,7 +32,7 @@ function help() {
   console.log("");
   console.log('Primary help topics, type "daplie help TOPIC" for more details:');
   console.log("");
-  //console.log("  accounts  #  manage accounts");
+  console.log("  accounts   #  manage accounts");
   console.log("  auth       #  authentication (login, logout)");
   console.log("  devices    #  manage IP devices");
   console.log("  dns        #  manage dns");
@@ -126,7 +126,36 @@ function listCards(opts, card1) {
   });
 }
 
-if ('auth' === cmd) {
+if ('accounts' === cmd1 && !cmd2) {
+  console.log("");
+  console.log("Usage: daplie accounts:COMMAND [command-specific-options]");
+  console.log("");
+  console.log('Primary help topics, type "daplie help accounts:COMMAND" for more details:');
+  console.log("");
+  console.log("  accounts:list    # show all accounts for current login(s)");
+//  console.log("  accounts:select  # set the current account");
+  console.log("");
+  return;
+}
+
+else if ('accounts:list' === cmd) {
+  if (helpme) {
+    console.log("");
+    console.log("  accounts:list    # show all accounts for current login(s)");
+    console.log("");
+    return;
+  }
+
+  program.provider = cliOptions.provider;
+  oauth3.Accounts.list(program.opts()).then(function (results) {
+    console.log('');
+    console.log(JSON.stringify(results, null, '  '));
+    console.log(results.accounts.length);
+    console.log('');
+  });
+}
+
+else if ('auth' === cmd) {
   console.log("");
   console.log("Usage: daplie auth");
   console.log("");
@@ -334,7 +363,7 @@ else if ('dns:list' === cmd) {
       }
       console.log(
         new Date(record.updatedAt).toLocaleString()
-      + '\t' + record.host
+      + '\t' + (record.host || '@')
       + '\t' + record.device
       + '\t' + record.ttl
       + '\t' + record.type
