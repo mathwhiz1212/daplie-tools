@@ -220,7 +220,7 @@ else if ('domains:list' === cmd) {
     return;
   }
 
-  oauth3.domains(cliOptions).then(function (results) {
+  oauth3.Domains.all(cliOptions).then(function (results) {
     console.log('');
     console.log('PURCHASED AT\t\tRENEWAL COST\tDOMAIN NAME');
     console.log('');
@@ -257,7 +257,7 @@ else if ('domains:search' === cmd) {
     return;
   }
 
-  oauth3.purchaseDomains({
+  oauth3.Domains.purchase({
     provider: cliOptions.provider
   , domains: program.domains
   , tip: program.tip
@@ -301,10 +301,10 @@ else if ('dns:list' === cmd) {
 
   program.provider = cliOptions.provider;
   if (program.opts().all) {
-    promise = oauth3.allDns(program.opts());
+    promise = oauth3.Dns.all(program.opts());
   }
   else {
-    promise = oauth3.getDns(program.opts());
+    promise = oauth3.Dns.get(program.opts());
   }
   promise.then(function (results) {
     if (!results || !Array.isArray(results.records)) {
@@ -383,7 +383,7 @@ else if ('dns:set' === cmd) {
     return;
   }
 
-  oauth3.updateDns({
+  oauth3.Dns.set({
     provider: cliOptions.provider
   , domain: program.opts().name
   , answer: program.answer
@@ -413,7 +413,7 @@ else if ('dns:unset' === cmd) {
     return;
   }
 
-  oauth3.removeDns({
+  oauth3.Dns.destroy({
     provider: cliOptions.provider
   , domain: program.opts().name
   , answer: program.answer
@@ -451,7 +451,7 @@ else if ('devices:list' === cmd) {
   }
 
   program.provider = cliOptions.provider;
-  oauth3.getDevices().then(function (results) {
+  oauth3.Devices.all().then(function (results) {
     results.devices.sort(function (a, b) {
       if (a.name > b.name) {
         return 1;
@@ -503,7 +503,7 @@ else if ('devices:set' === cmd) {
   }
 
   program.provider = cliOptions.provider;
-  oauth3.setDevice(program.opts()).then(function (results) {
+  oauth3.Devices.set(program.opts()).then(function (results) {
     console.log('DEBUG devices:set results:');
     console.log(results);
   });
@@ -527,7 +527,7 @@ else if ('devices:unset' === cmd) {
   }
 
   program.provider = cliOptions.provider;
-  oauth3.deleteDevice(program.opts()).then(function (results) {
+  oauth3.Devices.destroy(program.opts()).then(function (results) {
     console.log('DEBUG devices:unset results:');
     console.log(results);
   });
@@ -553,7 +553,7 @@ else if ('devices:attach' === cmd) {
   }
 
   program.provider = cliOptions.provider;
-  oauth3.addDeviceToDomain(program.opts()).then(function (results) {
+  oauth3.Devices.attach(program.opts()).then(function (results) {
     console.log('DEBUG devices:attach results:');
     console.log(results);
   });
@@ -576,7 +576,7 @@ else if ('devices:detach' === cmd) {
   }
 
   program.provider = cliOptions.provider;
-  oauth3.detachDevice(program.opts()).then(function (results) {
+  oauth3.Devices.detach(program.opts()).then(function (results) {
     console.log('DEBUG devices:detach results:');
     console.log(results);
   });
@@ -617,7 +617,7 @@ else if ('devices:token' === cmd || 'dns:token' === cmd || 'domains:token' === c
   }
 
   program.provider = cliOptions.provider;
-  oauth3.devices.token(program.opts()).then(function (results) {
+  oauth3.Devices.token(program.opts()).then(function (results) {
     //console.log('');
     //console.log('DEVICE NAME\t\tTOKEN');
     //console.log('');
@@ -733,7 +733,7 @@ else if ('wallet:sources:update' === cmd) {
   }
 
   opts.provider = cliOptions.provider;
-  oauth3.Cards.update(opts).then(function (updatedCard) {
+  oauth3.Cards.update(opts).then(function (/*updatedCard*/) {
     return listCards(opts, null);
   });
 }
