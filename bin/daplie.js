@@ -277,38 +277,11 @@ else if ('dns' === cmd1 && !cmd2) {
   console.log("");
   console.log('Primary help topics, type "daplie help dns:COMMAND" for more details:');
   console.log("");
-  console.log("  dns:token        # retrieve a token for dns updates (i.e. for your ddns enabled router)");
   console.log("  dns:set          # add a device or server to a domain name");
   console.log("  dns:unset        # remove a device or server from a domain name");
   console.log("  dns:list         # show all dns records for a given domain");
   console.log("");
   return;
-}
-
-else if ('dns:token' === cmd || 'domains:token' === cmd) {
-  program
-    .usage('dns:token -n <domainname>')
-    .option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
-    .parse(process.argv)
-  ;
-
-  if (helpme || 'string' !== typeof program.device) {
-    program.help();
-    return;
-  }
-
-  program.provider = cliOptions.provider;
-  oauth3.domainsToken(program.opts()).then(function (results) {
-    //console.log('');
-    //console.log('DEVICE NAME\t\tTOKEN');
-    //console.log('');
-    //console.log(program.device + '\t' + results.token);
-    console.log('');
-    console.log('Set your DDNS client to use this URL:');
-    console.log('');
-    console.log('https://oauth3.org/api/com.enom.reseller/ddns?token=' + results.token);
-    console.log('');
-  });
 }
 
 else if ('dns:list' === cmd) {
@@ -459,6 +432,7 @@ else if ('devices' === cmd1 && !cmd2) {
   console.log("  devices:list     # show all devices (and ip addresses)");
   console.log("  devices:set      # add or update a device (and related dns records)");
   console.log("  devices:unset    # remove a device (and related dns records)");
+  console.log("  devices:token    # get ddns token for router/device/domain/dns updates");
   //console.log("  devices:clone    # add all domain associations from a source device to a target device");
   //console.log("  devices:pair    # make the two devices active clones of each other");
   console.log("");
@@ -629,6 +603,32 @@ else if ('devices:clone' === cmd) {
   }
 }
 */
+
+else if ('devices:token' === cmd || 'dns:token' === cmd || 'domains:token' === cmd) {
+  program
+    .usage('dns:token -n <domainname>')
+    .option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
+    .parse(process.argv)
+  ;
+
+  if (helpme || 'string' !== typeof program.device) {
+    program.help();
+    return;
+  }
+
+  program.provider = cliOptions.provider;
+  oauth3.devices.token(program.opts()).then(function (results) {
+    //console.log('');
+    //console.log('DEVICE NAME\t\tTOKEN');
+    //console.log('');
+    //console.log(program.device + '\t' + results.token);
+    console.log('');
+    console.log('Set your DDNS client to use this URL:');
+    console.log('');
+    console.log('https://oauth3.org/api/com.enom.reseller/ddns?token=' + results.token);
+    console.log('');
+  });
+}
 
 else if ('wallet' === cmd) {
   console.log("");
