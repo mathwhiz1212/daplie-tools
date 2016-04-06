@@ -126,7 +126,9 @@ function listCards(opts, card1) {
   });
 }
 
-if ('accounts' === cmd1 && !cmd2) {
+var all = {};
+
+all['accounts'] = function () {
   console.log("");
   console.log("Usage: daplie accounts:COMMAND [command-specific-options]");
   console.log("");
@@ -135,10 +137,9 @@ if ('accounts' === cmd1 && !cmd2) {
   console.log("  accounts:list    # show all accounts for current login(s)");
 //  console.log("  accounts:select  # set the current account");
   console.log("");
-  return;
-}
+};
 
-else if ('accounts:list' === cmd) {
+all['accounts:list'] = function () {
   if (helpme) {
     console.log("");
     console.log("  accounts:list    # show all accounts for current login(s)");
@@ -153,9 +154,9 @@ else if ('accounts:list' === cmd) {
     console.log(results.accounts.length);
     console.log('');
   });
-}
+};
 
-else if ('auth' === cmd) {
+all['auth'] = function () {
   console.log("");
   console.log("Usage: daplie auth");
   console.log("");
@@ -169,9 +170,9 @@ else if ('auth' === cmd) {
   //console.log("  auth:token   #  display your api token");
   //console.log("  auth:whoami  #  display your oauth3 email address");
   console.log("");
-}
+};
 
-else if ('login' === cmd || 'auth:login' === cmd) {
+all['login'] = all['auth:login'] = function () {
   program
     .usage('auth:login  # login through oauth3.org')
         .parse(process.argv)
@@ -198,21 +199,23 @@ else if ('login' === cmd || 'auth:login' === cmd) {
     console.error("Error with login:");
     console.error(err.stack || err);
   });
-}
+};
 
-else if ('domains' === cmd1 && !cmd2) {
+all['domains'] = function () {
   console.log("");
   console.log("Usage: daplie domains:COMMAND [command-specific-options]");
   console.log("");
   console.log('Primary help topics, type "daplie help domains:COMMAND" for more details:');
   console.log("");
-  console.log("  domains:list    # show domains purchased through daplie.domains");
-  console.log("  domains:search  # search and purchase domains through daplie.domains");
+  console.log("  domains:attach   # attach a device to a domain");
+  console.log("  domains:detach   # detach a device from a domain");
+  console.log("  domains:list     # show domains purchased through daplie.domains");
+  console.log("  domains:search   # search and purchase domains through daplie.domains");
   console.log("");
   return;
-}
+};
 
-else if ('domains:list' === cmd) {
+all['domains:list'] = function () {
   if (helpme) {
     console.log("");
     console.log("  domains:list    # show domains purchased through daplie.domains");
@@ -242,13 +245,15 @@ else if ('domains:list' === cmd) {
     });
     console.log('');
   });
-}
-else if ('domains:search' === cmd) {
+};
+
+all['domains:search'] = function () {
   program
     .usage('domains:search')
-    .option('-d, --domains <values...>', 'Comma-separated list of domains to search')
-    .option('-t, --tip <n>', 'A tip (in USD) in addition to the domain purchase price')
+    .option('-n, --domainnames <values...>', 'Comma-separated list of domains to search')
+    .option('--tip <n>', 'A tip (in USD) in addition to the domain purchase price')
     .option('--max-purchase-price <n>', 'Purchase domains in non-interactive mode if total <= n ($USD)')
+    .option('-d, --domains <values...>', '(deprecated) Comma-separated list of domains to search')
     .parse(process.argv)
   ;
 
@@ -259,7 +264,7 @@ else if ('domains:search' === cmd) {
 
   oauth3.Domains.purchase({
     provider: cliOptions.provider
-  , domains: program.domains
+  , domains: program.domainnames || program.domains
   , tip: program.tip
   , 'max-purchase-price': program['max-purchase-price'] || program.maxPurchasePrice
   }).then(function (results) {
@@ -270,8 +275,9 @@ else if ('domains:search' === cmd) {
     console.log("About $x.x will go to overhead costs and modest salaries.");
     console.log("$x.xx is fueling the future! Yay!");
   });
-}
-else if ('dns' === cmd1 && !cmd2) {
+};
+
+all['dns'] = function () {
   console.log("");
   console.log("Usage: daplie dns:COMMAND [command-specific-options]");
   console.log("");
@@ -282,9 +288,9 @@ else if ('dns' === cmd1 && !cmd2) {
   console.log("  dns:list         # show all dns records for a given domain");
   console.log("");
   return;
-}
+};
 
-else if ('dns:list' === cmd) {
+all['dns:list'] = function () {
   program
     .usage('dns:list -n <domainname>')
     .option('-n, --name <value>', 'Specify a domainname / hostname')
@@ -346,9 +352,9 @@ else if ('dns:list' === cmd) {
     console.log('');
     //console.log(Object.keys(results.records[0]));
   });
-}
+};
 
-else if ('dns:set' === cmd) {
+all['dns:set'] = function () {
   // daplie dns:device add <DEVICE NAME> <IPv4 or IPv6>
   // daplie dns:device remove <DEVICE NAME> <IPv4 or IPv6>
   // daplie dns:device reset <DEVICE NAME> <IPv4 or IPv6> // just one
@@ -393,9 +399,9 @@ else if ('dns:set' === cmd) {
   }).then(function (results) {
     console.log(results);
   });
-}
+};
 
-else if ('dns:unset' === cmd) {
+all['dns:unset'] = function () {
   program
     .usage('dns:unset -n <domainname> -t <type> -a <answer>')
     .option('-n, --name <value>', 'Specify a domainname / hostname')
@@ -421,14 +427,16 @@ else if ('dns:unset' === cmd) {
   }).then(function (results) {
     console.log(results);
   });
-}
+};
 
-else if ('devices' === cmd1 && !cmd2) {
+all['devices'] = function () {
   console.log("");
   console.log("Usage: daplie devices:COMMAND [command-specific-options]");
   console.log("");
   console.log('Primary help topics, type "daplie help devices:COMMAND" for more details:');
   console.log("");
+  console.log("  devices:attach   # attach a device to a domain");
+  console.log("  devices:detach   # detach a device from a domain");
   console.log("  devices:list     # show all devices (and ip addresses)");
   console.log("  devices:set      # add or update a device (and related dns records)");
   console.log("  devices:unset    # remove a device (and related dns records)");
@@ -437,9 +445,9 @@ else if ('devices' === cmd1 && !cmd2) {
   //console.log("  devices:pair    # make the two devices active clones of each other");
   console.log("");
   return;
-}
+};
 
-else if ('devices:list' === cmd) {
+all['devices:list'] = function () {
   program
     .usage('devices:list')
     .parse(process.argv)
@@ -482,9 +490,9 @@ else if ('devices:list' === cmd) {
     });
     console.log('');
   });
-}
+};
 
-else if ('devices:set' === cmd) {
+all['devices:set'] = function () {
   // set device + ip (for all associated domains)
   program
     .usage('devices:set -d <devicename> -a <ip1,ip2,...>')
@@ -507,9 +515,9 @@ else if ('devices:set' === cmd) {
     console.log('DEBUG devices:set results:');
     console.log(results);
   });
-}
+};
 
-else if ('devices:unset' === cmd) {
+all['devices:unset'] = function () {
   // set device + ip (for all associated domains)
   program
     .usage('devices:unset -d <devicename> --confirm delete')
@@ -531,9 +539,9 @@ else if ('devices:unset' === cmd) {
     console.log('DEBUG devices:unset results:');
     console.log(results);
   });
-}
+};
 
-else if ('devices:attach' === cmd) {
+all['devices:attach'] = all['domains:attach'] = function () {
   program
     .usage('devices:attach -d <devicename> -n <domainname>')
     .option('-d, --device <value>', 'Name of device to add')
@@ -557,9 +565,9 @@ else if ('devices:attach' === cmd) {
     console.log('DEBUG devices:attach results:');
     console.log(results);
   });
-}
+};
 
-else if ('devices:detach' === cmd) {
+all['devices:detach'] = all['domains:detach'] = function () {
   program
     .usage('devices:detach -d <devicename> -n <domainname>')
     .option('-d, --device <value>', 'Name of device to add')
@@ -580,10 +588,10 @@ else if ('devices:detach' === cmd) {
     console.log('DEBUG devices:detach results:');
     console.log(results);
   });
-}
+};
 
 /*
-else if ('devices:clone' === cmd) {
+all['devices:clone'] = function () {
   // for when you want to move copy all associated domains of one device to a new device
   // TODO devices:pair - two-way continuous clone
   // TODO devices:unpair
@@ -604,7 +612,7 @@ else if ('devices:clone' === cmd) {
 }
 */
 
-else if ('devices:token' === cmd || 'dns:token' === cmd || 'domains:token' === cmd) {
+all['devices:token'] = all['dns:token'] = all['domains:token'] = function () {
   program
     .usage('dns:token -n <domainname>')
     .option('-d, --device <value>', 'Name of device / server to which this token is issued (defaults to os.hostname)')
@@ -628,9 +636,9 @@ else if ('devices:token' === cmd || 'dns:token' === cmd || 'domains:token' === c
     console.log('https://oauth3.org/api/com.enom.reseller/ddns?token=' + results.token);
     console.log('');
   });
-}
+};
 
-else if ('wallet' === cmd) {
+all['wallet'] = function () {
   console.log("");
   console.log("Usage: daplie wallet:COMMAND [command-specific-options]");
   console.log("");
@@ -643,16 +651,16 @@ else if ('wallet' === cmd) {
   //console.log("  wallet:sources:default   # alias of wallet:sources:update --default");
   console.log("");
   return;
-}
+};
 
-else if ('wallet:sources' === cmd) {
+all['wallet:sources'] = function () {
   program.provider = cliOptions.provider;
   var opts = program.opts();
 
   listCards(opts, null);
-}
+};
 
-else if ('wallet:sources:add' === cmd) {
+all['wallet:sources:add'] = function () {
   program
     .usage('wallet:sources:add')
     .option('--cc-number <value>', 'Credit Card number (xxxx-xxxx-xxxx-xxxx)')
@@ -684,9 +692,9 @@ else if ('wallet:sources:add' === cmd) {
   oauth3.Cards.add(program.opts()).then(function (card1) {
     return listCards(opts, card1);
   });
-}
+};
 
-else if ('wallet:sources:update' === cmd) {
+all['wallet:sources:update'] = function () {
   program
     .usage('wallet:sources:update --last4 <xxxx>')
     .option('--last4 <value>', 'Last 4 of credit card (xxxx-xxxx-xxxx-XXXXX)')
@@ -713,7 +721,6 @@ else if ('wallet:sources:update' === cmd) {
     return;
   }
 
-  var opts = program.opts();
   opts.ccPriority = opts.priority;
   opts.ccNick = opts.nick;
   opts.ccComment = opts.comment;
@@ -736,9 +743,9 @@ else if ('wallet:sources:update' === cmd) {
   oauth3.Cards.update(opts).then(function (/*updatedCard*/) {
     return listCards(opts, null);
   });
-}
+};
 
-else if ('wallet:sources:remove' === cmd) {
+all['wallet:sources:remove'] = function () {
   program
     .usage('wallet:sources:remove --last4 <xxxx>')
     .option('--last4 <value>', 'Last 4 of credit card (xxxx-xxxx-xxxx-XXXXX)')
@@ -748,6 +755,7 @@ else if ('wallet:sources:remove' === cmd) {
     .parse(process.argv)
   ;
 
+  var opts = program.opts();
   if (helpme) {
     program.help();
     console.log('');
@@ -771,12 +779,15 @@ else if ('wallet:sources:remove' === cmd) {
     }
   }
 
-  program.provider = cliOptions.provider;
-  oauth3.Cards.remove(program.opts()).then(function (/*deletedCard*/) {
+  opts.provider = cliOptions.provider;
+  oauth3.Cards.remove(opts).then(function (/*deletedCard*/) {
     return listCards(opts, null);
   });
-}
+};
 
+if (all[cmd]) {
+  all[cmd]();
+}
 else {
   console.error("'" + cmd + "' Not Implemented Yet!");
 }
