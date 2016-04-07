@@ -23,6 +23,18 @@ function pad(n) {
   return n;
 }
 
+function mergeDefaults(program) {
+  var opts = program.opts();
+
+  Object.keys(cliOptions).forEach(function (key) {
+    if (undefined === opts[key]) {
+      opts[key] = cliOptions[key];
+    }
+  });
+
+  return opts;
+}
+
 function help() {
   console.log("");
   console.log("v" + pkg.version);
@@ -33,6 +45,7 @@ function help() {
   console.log('Primary help topics, type "daplie help TOPIC" for more details:');
   console.log("");
   console.log("  accounts   #  manage accounts");
+  console.log("  addresses  #  manage addresses");
   console.log("  auth       #  authentication (login, logout)");
   console.log("  devices    #  manage IP devices");
   console.log("  dns        #  manage dns");
@@ -78,6 +91,7 @@ if (!cmd || -1 !== ['help', 'h', '--help', '-h', '?', '-?'].indexOf(cmd)) {
 
 cmds = [
   'accounts'
+, 'addresses'
 , 'auth'
 , 'devices'
 , 'dns'
@@ -128,7 +142,7 @@ function listCards(opts, card1) {
 
 var all = {};
 
-all['accounts'] = function () {
+all.accounts = function () {
   console.log("");
   console.log("Usage: daplie accounts:COMMAND [command-specific-options]");
   console.log("");
@@ -140,6 +154,8 @@ all['accounts'] = function () {
 };
 
 all['accounts:list'] = function () {
+  var opts = mergeDefaults(program);
+
   if (helpme) {
     console.log("");
     console.log("  accounts:list    # show all accounts for current login(s)");
@@ -147,8 +163,7 @@ all['accounts:list'] = function () {
     return;
   }
 
-  program.provider = cliOptions.provider;
-  oauth3.Accounts.list(program.opts()).then(function (results) {
+  oauth3.Accounts.list(opts).then(function (results) {
     console.log('');
     console.log(JSON.stringify(results, null, '  '));
     console.log(results.accounts.length);
@@ -156,7 +171,36 @@ all['accounts:list'] = function () {
   });
 };
 
-all['auth'] = function () {
+all.addresses = function () {
+  console.log("");
+  console.log("Usage: daplie addresses:COMMAND [command-specific-options]");
+  console.log("");
+  console.log('Primary help topics, type "daplie help addresses:COMMAND" for more details:');
+  console.log("");
+  console.log("  addresses:list    # show all addresses for current account");
+//  console.log("  accounts:select  # set the current account");
+  console.log("");
+};
+
+all['addresses:list'] = function () {
+  var opts = mergeDefaults(program);
+
+  if (helpme) {
+    console.log("");
+    console.log("  addresses:list    # show all mailing addresses for current login(s)");
+    console.log("");
+    return;
+  }
+
+  oauth3.Addresses.list(opts).then(function (results) {
+    console.log('');
+    console.log(JSON.stringify(results, null, '  '));
+    //console.log(results.accounts.length);
+    console.log('');
+  });
+};
+
+all.auth = function () {
   console.log("");
   console.log("Usage: daplie auth");
   console.log("");
@@ -172,18 +216,19 @@ all['auth'] = function () {
   console.log("");
 };
 
-all['login'] = all['auth:login'] = function () {
+all.login = all['auth:login'] = function () {
   program
     .usage('auth:login  # login through oauth3.org')
-        .parse(process.argv)
-    ;
+    .parse(process.argv)
+  ;
 
+  var opts = mergeDefaults(program);
   if (helpme) {
     program.help();
     return;
   }
 
-  oauth3.manualLogin(cliOptions).then(function (results) {
+  oauth3.manualLogin(opts).then(function (results) {
     if (results && results.oauth3 && results.session && results.sessionTested) {
       // TODO
       //console.log("Logged in as XYZ, using account ABC.");
@@ -201,7 +246,7 @@ all['login'] = all['auth:login'] = function () {
   });
 };
 
-all['domains'] = function () {
+all.domains = function () {
   console.log("");
   console.log("Usage: daplie domains:COMMAND [command-specific-options]");
   console.log("");
@@ -216,6 +261,8 @@ all['domains'] = function () {
 };
 
 all['domains:list'] = function () {
+  var opts = mergeDefaults(program);
+
   if (helpme) {
     console.log("");
     console.log("  domains:list    # show domains purchased through daplie.domains");
@@ -223,7 +270,7 @@ all['domains:list'] = function () {
     return;
   }
 
-  oauth3.Domains.all(cliOptions).then(function (results) {
+  oauth3.Domains.all(opts).then(function (results) {
     console.log('');
     console.log('PURCHASED AT\t\tRENEWAL COST\tDOMAIN NAME');
     console.log('');
@@ -257,16 +304,17 @@ all['domains:search'] = function () {
     .parse(process.argv)
   ;
 
+  var opts = mergeDefaults(program);
   if (helpme) {
     program.help();
     return;
   }
 
   oauth3.Domains.purchase({
-    provider: cliOptions.provider
-  , domains: program.domainnames || program.domains
-  , tip: program.tip
-  , 'max-purchase-price': program['max-purchase-price'] || program.maxPurchasePrice
+    provider: opts.provider
+  , domains: opts.domainnames || opts.domains
+  , tip: opts.tip
+  , 'max-purchase-price': opts['max-purchase-price'] || opts.maxPurchasePrice
   }).then(function (results) {
     // TODO fix 2.9% on fee
     console.log('[make purchase result]');
@@ -277,7 +325,7 @@ all['domains:search'] = function () {
   });
 };
 
-all['dns'] = function () {
+all.dns = function () {
   console.log("");
   console.log("Usage: daplie dns:COMMAND [command-specific-options]");
   console.log("");
@@ -298,19 +346,19 @@ all['dns:list'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || (!program.opts().all && 'string' !== typeof program.opts().name)) {
+  var opts = mergeDefaults(program);
+  if (helpme || (!opts.all && 'string' !== typeof opts.name)) {
     program.help();
     return;
   }
 
   var promise;
 
-  program.provider = cliOptions.provider;
-  if (program.opts().all) {
-    promise = oauth3.Dns.all(program.opts());
+  if (opts.all) {
+    promise = oauth3.Dns.all(opts);
   }
   else {
-    promise = oauth3.Dns.get(program.opts());
+    promise = oauth3.Dns.get(opts);
   }
   promise.then(function (results) {
     if (!results || !Array.isArray(results.records)) {
@@ -384,18 +432,19 @@ all['dns:set'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || !('string' === typeof program.opts().name && program.type && program.answer)) {
+  var opts = mergeDefaults(program);
+  if (helpme || !('string' === typeof opts.name && opts.type && opts.answer)) {
     program.help();
     return;
   }
 
   oauth3.Dns.set({
-    provider: cliOptions.provider
-  , domain: program.opts().name
-  , answer: program.answer
-  , type: program.type
-  , ttl: program.ttl
-  , priority: program.priority
+    provider: opts.provider
+  , domain: opts.name
+  , answer: opts.answer
+  , type: opts.type
+  , ttl: opts.ttl
+  , priority: opts.priority
   }).then(function (results) {
     console.log(results);
   });
@@ -414,22 +463,23 @@ all['dns:unset'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || !('string' === typeof program.opts().name && program.type && program.answer)) {
+  var opts = mergeDefaults(program);
+  if (helpme || !('string' === typeof opts.name && opts.type && opts.answer)) {
     program.help();
     return;
   }
 
   oauth3.Dns.destroy({
     provider: cliOptions.provider
-  , domain: program.opts().name
-  , answer: program.answer
-  , type: program.type
+  , domain: opts.name
+  , answer: opts.answer
+  , type: opts.type
   }).then(function (results) {
     console.log(results);
   });
 };
 
-all['devices'] = function () {
+all.devices = function () {
   console.log("");
   console.log("Usage: daplie devices:COMMAND [command-specific-options]");
   console.log("");
@@ -458,7 +508,6 @@ all['devices:list'] = function () {
     return;
   }
 
-  program.provider = cliOptions.provider;
   oauth3.Devices.all().then(function (results) {
     results.devices.sort(function (a, b) {
       if (a.name > b.name) {
@@ -502,7 +551,8 @@ all['devices:set'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || (!program.opts().auto && !(program.opts().device && program.opts().addresses))) {
+  var opts = mergeDefaults(program);
+  if (helpme || (!opts.auto && !(opts.device && opts.addresses))) {
     program.help();
     console.log('');
     console.log('Example: daplie devices:set -d localhost -a 127.0.0.1,::1');
@@ -510,8 +560,7 @@ all['devices:set'] = function () {
     return;
   }
 
-  program.provider = cliOptions.provider;
-  oauth3.Devices.set(program.opts()).then(function (results) {
+  oauth3.Devices.set(opts).then(function (results) {
     console.log('DEBUG devices:set results:');
     console.log(results);
   });
@@ -526,7 +575,8 @@ all['devices:unset'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || ('delete' !== program.opts().confirm || !program.opts().device)) {
+  var opts = mergeDefaults(program);
+  if (helpme || ('delete' !== opts.confirm || !opts.device)) {
     program.help();
     console.log('');
     console.log('Example: daplie devices:unset -d localhost --confirm delete');
@@ -534,8 +584,7 @@ all['devices:unset'] = function () {
     return;
   }
 
-  program.provider = cliOptions.provider;
-  oauth3.Devices.destroy(program.opts()).then(function (results) {
+  oauth3.Devices.destroy(opts).then(function (results) {
     console.log('DEBUG devices:unset results:');
     console.log(results);
   });
@@ -552,7 +601,8 @@ all['devices:attach'] = all['domains:attach'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || (!program.opts().device || !program.opts().device)) {
+  var opts = mergeDefaults(program);
+  if (helpme || (!opts.device || !opts.device)) {
     program.help();
     console.log('');
     console.log('Example: daplie devices:attach -d localhost -n example.com');
@@ -560,8 +610,7 @@ all['devices:attach'] = all['domains:attach'] = function () {
     return;
   }
 
-  program.provider = cliOptions.provider;
-  oauth3.Devices.attach(program.opts()).then(function (results) {
+  oauth3.Devices.attach(opts).then(function (results) {
     console.log('DEBUG devices:attach results:');
     console.log(results);
   });
@@ -575,7 +624,8 @@ all['devices:detach'] = all['domains:detach'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || (!program.opts().device || !program.opts().name)) {
+  var opts = mergeDefaults(program);
+  if (helpme || (!opts.device || !opts.name)) {
     program.help();
     console.log('');
     console.log('Example: daplie devices:detach -d localhost -n example.com');
@@ -583,8 +633,7 @@ all['devices:detach'] = all['domains:detach'] = function () {
     return;
   }
 
-  program.provider = cliOptions.provider;
-  oauth3.Devices.detach(program.opts()).then(function (results) {
+  oauth3.Devices.detach(opts).then(function (results) {
     console.log('DEBUG devices:detach results:');
     console.log(results);
   });
@@ -602,7 +651,7 @@ all['devices:clone'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || !(program.opts().sourceDevice && program.opts().targetDevice)) {
+  if (helpme || !(opts.sourceDevice && opts.targetDevice)) {
     program.help();
     console.log('');
     console.log('Example: daplie devices:clone -s old-device -t new-device');
@@ -619,17 +668,17 @@ all['devices:token'] = all['dns:token'] = all['domains:token'] = function () {
     .parse(process.argv)
   ;
 
-  if (helpme || 'string' !== typeof program.device) {
+  var opts = mergeDefaults(program);
+  if (helpme || 'string' !== typeof opts.device) {
     program.help();
     return;
   }
 
-  program.provider = cliOptions.provider;
-  oauth3.Devices.token(program.opts()).then(function (results) {
+  oauth3.Devices.token(opts).then(function (results) {
     //console.log('');
     //console.log('DEVICE NAME\t\tTOKEN');
     //console.log('');
-    //console.log(program.device + '\t' + results.token);
+    //console.log(opts.device + '\t' + results.token);
     console.log('');
     console.log('Set your DDNS client to use this URL:');
     console.log('');
@@ -638,7 +687,7 @@ all['devices:token'] = all['dns:token'] = all['domains:token'] = function () {
   });
 };
 
-all['wallet'] = function () {
+all.wallet = function () {
   console.log("");
   console.log("Usage: daplie wallet:COMMAND [command-specific-options]");
   console.log("");
@@ -654,8 +703,7 @@ all['wallet'] = function () {
 };
 
 all['wallet:sources'] = function () {
-  program.provider = cliOptions.provider;
-  var opts = program.opts();
+  var opts = mergeDefaults(program);
 
   listCards(opts, null);
 };
@@ -676,6 +724,7 @@ all['wallet:sources:add'] = function () {
     .parse(process.argv)
   ;
 
+  var opts = mergeDefaults(program);
   if (helpme) {
     program.help();
     console.log('');
@@ -684,12 +733,10 @@ all['wallet:sources:add'] = function () {
     return;
   }
 
-  var opts = program.opts();
   opts.ccPriority = opts.priority;
   opts.ccNick = opts.nick;
   opts.ccComment = opts.comment;
-  program.provider = cliOptions.provider;
-  oauth3.Cards.add(program.opts()).then(function (card1) {
+  oauth3.Cards.add(opts).then(function (card1) {
     return listCards(opts, card1);
   });
 };
@@ -709,7 +756,7 @@ all['wallet:sources:update'] = function () {
     .parse(process.argv)
   ;
 
-  var opts = program.opts();
+  var opts = mergeDefaults(program);
   if (helpme
     || !(opts.last4)
     || !(opts.default || opts.priority || opts.nick || opts.comment || opts.exp)
@@ -726,16 +773,16 @@ all['wallet:sources:update'] = function () {
   opts.ccComment = opts.comment;
   if (opts.brand) {
     if ('amex' === opts.brand.toLowerCase()) {
-      program.brand = 'American Express';
+      opts.brand = 'American Express';
     }
     else if ('mc' === opts.brand.toLowerCase()) {
-      program.brand = 'MasterCard';
+      opts.brand = 'MasterCard';
     }
     else if ('disc' === opts.brand.toLowerCase()) {
-      program.brand = 'Discover';
+      opts.brand = 'Discover';
     }
     else if (/^(dci|diner)/i.test(opts.brand)) {
-      program.brand = 'Diners Club';
+      opts.brand = 'Diners Club';
     }
   }
 
@@ -755,7 +802,7 @@ all['wallet:sources:remove'] = function () {
     .parse(process.argv)
   ;
 
-  var opts = program.opts();
+  var opts = mergeDefaults(program);
   if (helpme) {
     program.help();
     console.log('');
@@ -764,18 +811,18 @@ all['wallet:sources:remove'] = function () {
     return;
   }
 
-  if (program.opts().brand) {
-    if ('amex' === program.opts().brand.toLowerCase()) {
-      program.brand = 'American Express';
+  if (opts.brand) {
+    if ('amex' === opts.brand.toLowerCase()) {
+      opts.brand = 'American Express';
     }
-    else if ('mc' === program.opts().brand.toLowerCase()) {
-      program.brand = 'MasterCard';
+    else if ('mc' === opts.brand.toLowerCase()) {
+      opts.brand = 'MasterCard';
     }
-    else if ('disc' === program.opts().brand.toLowerCase()) {
-      program.brand = 'Discover';
+    else if ('disc' === opts.brand.toLowerCase()) {
+      opts.brand = 'Discover';
     }
-    else if (/^(dci|diner)/i.test(program.opts().brand)) {
-      program.brand = 'Diners Club';
+    else if (/^(dci|diner)/i.test(opts.brand)) {
+      opts.brand = 'Diners Club';
     }
   }
 
