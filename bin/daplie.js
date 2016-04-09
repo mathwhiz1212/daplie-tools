@@ -693,7 +693,7 @@ all.wallet = function () {
   console.log("");
   console.log('Primary help topics, type "daplie help wallet:COMMAND" for more details:');
   console.log("");
-  console.log("  wallet:sources           # show all funding sources");
+  console.log("  wallet:sources:list      # show all funding sources");
   console.log("  wallet:sources:add       # add a new credit card");
   console.log("  wallet:sources:remove    # remove a credit card");
   console.log("  wallet:sources:update    # set the default (or the priority)");
@@ -702,7 +702,7 @@ all.wallet = function () {
   return;
 };
 
-all['wallet:sources'] = function () {
+all['wallet:sources'] = all['wallet:sources:list'] = function () {
   var opts = mergeDefaults(program);
 
   listCards(opts, null);
