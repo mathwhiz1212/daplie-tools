@@ -841,10 +841,10 @@ else {
 
 process.on('unhandledRejection', function(reason, p) {
   console.log("Possibly Unhandled Rejection at:");
-  console.log("Promise: ", p);
-  console.log(p.stack);
-  console.log("Reason: ", reason);
-  console.log(reason.stack);
+  console.log("Promise:");
+  console.error(p);
+  console.log("Reason:");
+  console.error(reason);
   process.exit(1);
   // application specific logging here
 });
