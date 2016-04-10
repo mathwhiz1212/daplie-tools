@@ -3,6 +3,25 @@ Taking Back the Internet
 
 https://daplie.com/articles/introducing-daplie/
 
+<h2>What is it?</h2>
+
+daplie-tools is a CLI client for DDNS and domain purchases. This is alpha software, NOT FOR PRODUCTION USE!
+
+<h2>Prerequisities</h2>
+
+You need Curl and Git. You can install them using apt-get with this command: `apt-get install git curl`
+
+You need Node.js You can install it with these commands:
+
+`curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -`
+
+`apt-get install nodejs`
+
+If you don't want to use the piped script you can download nodejs here: https://nodejs.org/en/download/
+
+<h2>Installation</h2>
+
+You can install it by running: `npm install -g daplie-tools`
 
 <h2>Usage</h2>
 
@@ -10,58 +29,12 @@ https://daplie.com/articles/introducing-daplie/
 
 <h2>Commands</h2>
 
-<h3>Help</h3>
+See [COMMANDS.md](COMMANDS.md)
 
-`daplie help`
+<h2>Authors</h2>
 
-<h3>Manage Accounts</h3>
+daplie-tools is developed by <a href="https://github.com/coolaj86">AJ ONeal.</a>
 
-`daplie accounts`
+<h2>License</h2>
 
-<h3>Manage Addresses</h3>
-  
-`daplie addresses`
-  
-<h3>Authentication (login, logout)</h3>
-
-`daplie auth`
- 
-<h3>Manage IP devices</h3>
-
-`daplie devices`
-  
-<h3>Manage DNS</h3>
-
-`daplie dns`
-
-<h3>Domain Purchase or Management</h3>
-
-`daplie domains`
-
-<h3>Manage Payment Methods</h3>
-  
-`daplie wallet`
-  
-<h3>Login</h3>
-
-To login with your OAuth3 credentials run:
-
-`daplie login`
-
-<h2>Domains</h2>
-
-<h3>Domain Search/Purchase Domains</h3>
-
-`daplie domains:search`
-
-<h3>List Purchased Domains</h3>
-
-`daplie domains:list`
-
-<h3>Attach Device</h3>
-
-`daplie domains:attach`
-
-<h3>Detach Device</h3>
-
-`daplie domains:detach`
+daplie-tools is licensed under the <a href="https://spdx.org/licenses/MPL-2.0">MPLv2</a> license.
