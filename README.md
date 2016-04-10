@@ -21,7 +21,9 @@ If you don't want to use the piped script you can download nodejs here: https://
 
 ## Installation
 
-You can install it by running: `npm install -g daplie-tools`
+You can install it by running: 
+
+`npm install -g daplie-tools`
 
 ## Usage
 
@@ -39,9 +41,7 @@ daplie-tools is developed by <a href="https://github.com/coolaj86">AJ ONeal.</a>
 
 A strict version of semantic versioning is used.
 
-The format is:
-
-`v<major.minor.patch>-<class>+<build>`
+The format is: `v<major.minor.patch>-<class>+<build>`
 
 More information avaliable at <a href="http://semver.org"> http://semver.org/</a>
 
