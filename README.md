@@ -47,3 +47,21 @@ https://daplie.com/articles/introducing-daplie/
 To login with your OAuth3 credentials run:
 
 `daplie login`
+
+<h2>Domains</h2>
+
+Domain Search/Purchase Domains
+
+<h3>`daplie domains:search`</h3>
+
+List Purchased Domains
+
+<h3>`daplie domains:list`</h3>
+
+Attach Device
+
+<h3>`daplie domains:attach`</h3>
+
+Detach Device
+
+<h3>`daplie domains:detach`</h3>
