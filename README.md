@@ -50,18 +50,18 @@ To login with your OAuth3 credentials run:
 
 <h2>Domains</h2>
 
-Domain Search/Purchase Domains
+<h3>Domain Search/Purchase Domains</h3>
 
-<h3>`daplie domains:search`</h3>
+`daplie domains:search`
 
-List Purchased Domains
+<h3>List Purchased Domains</h3>
 
-<h3>`daplie domains:list`</h3>
+`daplie domains:list`
 
-Attach Device
+<h3>Attach Device</h3>
 
-<h3>`daplie domains:attach`</h3>
+`daplie domains:attach`
 
-Detach Device
+<h3>Detach Device</h3>
 
-<h3>`daplie domains:detach`</h3>
+`daplie domains:detach`
