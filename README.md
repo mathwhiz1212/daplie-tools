@@ -9,13 +9,11 @@ daplie-tools is a CLI client for DDNS and domain purchases. This is alpha softwa
 
 ## Prerequisities
 
-You need Curl and Git. You can install them using apt-get with this command: `apt-get install git curl`
+You need cURL and Git. You can install them using apt-get with this command: `apt-get install --yes git curl`
 
-You need Node.js You can install it with these commands:
+You need Node.js You can install it on OS X or Linux with this commands:
 
-`curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -`
-
-`apt-get install nodejs`
+`curl -sL bit.ly/nodejs-min | bash`
 
 If you don't want to use the piped script you can download nodejs here: https://nodejs.org/en/download/
 
