@@ -35,6 +35,17 @@ See [COMMANDS.md](COMMANDS.md)
 
 daplie-tools is developed by <a href="https://github.com/coolaj86">AJ ONeal.</a>
 
+## Versioning
+
+A strict version of semantic versioning is used.
+
+The format is:
+
+`v<major.minor.patch>-<class>+<build>`
+
+More information avaliable at <a href="http://semver.org"> http://semver.org/</a>
+
+
 ## License
 
 daplie-tools is licensed under the <a href="https://spdx.org/licenses/MPL-2.0">MPLv2</a> license.
