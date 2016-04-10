@@ -47,6 +47,3 @@ https://daplie.com/articles/introducing-daplie/
 To login with your OAuth3 credentials run:
 
 `daplie login`
-
-
-
