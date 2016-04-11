@@ -602,7 +602,7 @@ all['devices:attach'] = all['domains:attach'] = function () {
   ;
 
   var opts = mergeDefaults(program);
-  if (helpme || (!opts.device || !opts.device)) {
+  if (helpme || (!opts.device || !opts.name)) {
     program.help();
     console.log('');
     console.log('Example: daplie devices:attach -d localhost -n example.com');
