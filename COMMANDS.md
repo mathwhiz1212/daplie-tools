@@ -1,56 +1,57 @@
-<h3>Help</h3>
+#Commands
+
+##Help
 
 `daplie help`
 
-<h3>Manage Accounts</h3>
+##Manage Accounts
 
 `daplie accounts`
 
-<h3>Manage Addresses</h3>
+##Manage Addresses
   
 `daplie addresses`
   
-<h3>Authentication (login, logout)</h3>
+##Authentication (login, logout)
 
 `daplie auth`
  
-<h3>Manage IP devices</h3>
+##Manage IP devices
 
 `daplie devices`
   
-<h3>Manage DNS</h3>
+##Manage DNS
 
 `daplie dns`
 
-<h3>Domain Purchase or Management</h3>
+##Domain Purchase or Management
 
 `daplie domains`
 
-<h3>Manage Payment Methods</h3>
+##Manage Payment Methods
   
 `daplie wallet`
   
-<h3>Login</h3>
+##Login
 
 To login with your OAuth3 credentials run:
 
 `daplie login`
 
+#Domains
 
-<h2>Domains</h2>
-
-<h3>Domain Search/Purchase Domains</h3>
+##Domain Search/Purchase Domains
 
 `daplie domains:search`
 
-<h3>List Purchased Domains</h3>
+##List Purchased Domains
 
 `daplie domains:list`
 
-<h3>Attach Device</h3>
+##Attach Device
 
 `daplie domains:attach`
 
-<h3>Detach Device</h3>
+##Detach Device
 
 `daplie domains:detach`
