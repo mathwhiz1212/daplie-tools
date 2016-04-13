@@ -26,6 +26,20 @@ function pad(n) {
 function mergeDefaults(program) {
   var opts = program.opts();
 
+  // name, defaults
+  /*
+  [ 'name', 'defaults' ].forEach(function (key) {
+    if ('function' === typeof opts[key]) {
+      delete opts[key];
+    }
+  });
+  */
+  Object.keys(opts).forEach(function (key) {
+    if ('function' === typeof opts[key]) {
+      delete opts[key];
+    }
+  });
+
   Object.keys(cliOptions).forEach(function (key) {
     if (undefined === opts[key]) {
       opts[key] = cliOptions[key];
@@ -50,6 +64,7 @@ function help() {
   console.log("  devices    #  manage IP devices");
   console.log("  dns        #  manage dns");
   console.log("  domains    #  purchase and manage domains");
+  console.log("  ns         #  manage nameservers");
   console.log("  wallet     #  see and manage funding sources (credit cards)"); // and balance
   console.log("");
   console.log("Additional topics:");
@@ -96,7 +111,9 @@ cmds = [
 , 'devices'
 , 'dns'
 , 'domains'
+, 'glue'
 , 'login'
+, 'ns'
 , 'wallet'
 ];
 if (-1 === cmds.indexOf(cmd.split(/:/)[0])) {
@@ -687,6 +704,164 @@ all['devices:token'] = all['dns:token'] = all['domains:token'] = function () {
   });
 };
 
+//
+// NameServer Glue Records
+//
+all.glue = function () {
+  console.log("");
+  console.log("Usage: daplie glue:COMMAND [command-specific-options]");
+  console.log("");
+  console.log('Primary help topics, type "daplie help glue:COMMAND" for more details:');
+  console.log("");
+  console.log("  glue:list      # show nameserver glue records");
+  console.log("  glue:set       # set nameserver glue records");
+  console.log("");
+};
+all['glue:list'] = function () {
+  program
+    .usage('glue:list')
+    .option('-a, --all', 'Show all')
+    .option('-n, --name <value>', 'Filter by domain name')
+    .parse(process.argv)
+  ;
+
+  var opts = mergeDefaults(program);
+
+  if (helpme || !(opts.name || opts.all)) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie glue:list --all');
+    console.log('');
+    return;
+  }
+
+  return oauth3.Glue.all(opts).then(function (records) {
+    if (opts.name) {
+      records = records.filter(function (r) {
+        return ('.' + opts.name).length ===
+          r.name.lastIndexOf('.' + opts.name) - r.name.length;
+      });
+    }
+    console.log("");
+    console.log('      NAME      ' + '\t' + '       IP       ');
+    console.log('----------------' + '\t' + '----------------');
+    records.forEach(function (r) {
+      console.log(r.name + '\t' + r.ip);
+    });
+    console.log("");
+  });
+};
+all['glue:set'] = function () {
+  program
+    .usage('glue:set')
+    .option('-n, --name <value>', 'Specify a domainname such as ns1.example.com')
+    .option('-a, --address <value>', 'Specify a domainname')
+    .option('--defaults', 'Use the daplie nameservers and naming convention')
+    .parse(process.argv)
+  ;
+
+  var opts = mergeDefaults(program);
+  if (helpme || !((opts.name && opts.address) || (opts.name && opts.defaults))) {
+    program.help();
+    console.log('');
+    console.log('Examples:');
+    console.log('    daplie glue:set --name ns1.example.com --address 127.0.0.1');
+    console.log('    daplie glue:set --name example.com --defaults');
+    console.log('');
+    return;
+  }
+
+  return oauth3.Glue.set(opts).then(function (/*success*/) {
+    console.log("");
+    console.log("Success");
+    console.log("");
+  });
+};
+
+//
+// NameServers
+//
+all.ns = function () {
+  console.log("");
+  console.log("Usage: daplie ns:COMMAND [command-specific-options]");
+  console.log("");
+  console.log('Primary help topics, type "daplie help ns:COMMAND" for more details:');
+  console.log("");
+  console.log("  ns:list        # show nameservers, same as `dig NS <domain>`");
+  console.log("  ns:set         # set nameservers");
+  console.log("");
+};
+all['ns:list'] = function () {
+  program
+    .usage('ns:list')
+    .option('-n, --name <value>', 'Specify a domainname')
+    .parse(process.argv)
+  ;
+
+  var opts = mergeDefaults(program);
+  if (helpme || !opts.name) {
+    program.help();
+    console.log('');
+    console.log('Example: daplie ns:list --name example.com');
+    console.log('');
+    return;
+  }
+
+  return require('dns').resolveNs(opts.name, function (err, nameservers) {
+    if (err) {
+      console.error(err.toString());
+      return;
+    }
+
+    console.log("");
+    console.log("Nameservers for " + opts.name);
+    console.log("-----------");
+    console.log("");
+    nameservers.forEach(function (ns) {
+      console.log(ns);
+    });
+    console.log("");
+  });
+};
+all['ns:set'] = function () {
+  program
+    .usage('ns:set')
+    .option('-n, --name <value>', 'Specify a domainname')
+    .option('--nameservers <values>', 'Comma-separated list of nameservers')
+    .option('--defaults', 'Use the daplie nameservers')
+    .parse(process.argv)
+  ;
+
+  var opts = mergeDefaults(program);
+  if (helpme || !opts.name || !(opts.nameservers || opts.defaults)) {
+    program.help();
+    console.log('');
+    console.log('Examples:');
+    console.log('    daplie ns:set --name example.com --nameservers ns1.example.com,ns2.example.com');
+    console.log('    daplie ns:set --name example.com --defaults');
+    console.log('');
+    return;
+  }
+
+  opts.nameservers = (opts.nameservers||'').split(',');
+
+  return oauth3.Ns.set(opts).then(function (result) {
+    console.log("");
+    console.log(opts.name);
+    console.log("");
+    console.log("Nameservers");
+    console.log("-----------");
+    console.log("");
+    result.nameservers.forEach(function (ns) {
+      console.log(ns);
+    });
+    console.log("");
+  });
+};
+
+//
+// Wallet
+//
 all.wallet = function () {
   console.log("");
   console.log("Usage: daplie wallet:COMMAND [command-specific-options]");
@@ -827,23 +1002,33 @@ all['wallet:sources:remove'] = function () {
   }
 
   opts.provider = cliOptions.provider;
-  oauth3.Cards.remove(opts).then(function (/*deletedCard*/) {
+  return oauth3.Cards.remove(opts).then(function (/*deletedCard*/) {
     return listCards(opts, null);
   });
 };
 
+function run() {
+  var p = all[cmd]();
+  if (p && p.then) {
+    p.then(function () {}, function (err) {
+      console.error('Error: ');
+      console.error(err.stack || err.message || err.toString());
+    });
+  }
+}
+
 if (all[cmd]) {
-  all[cmd]();
+  run();
 }
 else {
   console.error("'" + cmd + "' Not Implemented Yet!");
 }
 
-process.on('unhandledRejection', function(reason, p) {
+process.on('unhandledRejection', function (reason/*, p*/) {
   console.log("Possibly Unhandled Rejection at:");
-  console.log("Promise:");
-  console.error(p);
-  console.log("Reason:");
+  //console.log("Promise:");
+  //console.error(p);
+  //console.log("Reason:");
   console.error(reason);
   process.exit(1);
   // application specific logging here
