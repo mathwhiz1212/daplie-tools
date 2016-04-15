@@ -203,9 +203,10 @@ daplie devices:attach --device 'rpi2' -n 'example.com'
 daplie devices:token --device 'rpi2'
 ```
 
-Now schedule `cron` to run `curl` with the url+token every 10 minutes or so.
+Now schedule `cron` with a script to check your ip address every 5 minutes or so
+and then run `curl` with the url+token if the ip has changed.
 
-Note: (A more conservitive `devices:update` method will be implemented soon)
+Note: (A more comprehensive `devices:update` method will be implemented soon)
 
 ## Why do we require a credit card?
 
