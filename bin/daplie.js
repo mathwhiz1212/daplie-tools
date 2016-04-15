@@ -1024,12 +1024,13 @@ else {
   console.error("'" + cmd + "' Not Implemented Yet!");
 }
 
-process.on('unhandledRejection', function (reason/*, p*/) {
+process.on('unhandledRejection', function (err/*, p*/) {
   console.log("Possibly Unhandled Rejection at:");
   //console.log("Promise:");
   //console.error(p);
-  //console.log("Reason:");
-  console.error(reason);
+  //console.log("Error:");
+  // same as p.then(..., function (err) { ... })
+  console.error(err.stack || err);
   process.exit(1);
   // application specific logging here
 });
