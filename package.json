@@ -1,6 +1,6 @@
 {
   "name": "daplie-tools",
-  "version": "1.0.0-alpha.908",
+  "version": "1.0.0-alpha.909",
   "description": "Taking back the Internet",
   "main": "index.js",
   "bin": {
