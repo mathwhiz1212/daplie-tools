@@ -207,6 +207,15 @@ Now schedule `cron` to run `curl` with the url+token every 10 minutes or so.
 
 Note: (A more conservitive `devices:update` method will be implemented soon)
 
+## Why do we require a credit card?
+
+Many of the popular free DNS services are blocked by corporate, government, and school
+firewalls because of abuse from non-paying anonymous users.
+
+In order to ensure that our service remains available to all of our users
+we require a valid credit card and physical address as a method of
+deterring abusive and/or malicious users.
+
 ## White-Label Subdomains and/or Dynamic DNS
 
 You could offer your subdomains to your users in the same way that we offer `daplie.me` subdomains
