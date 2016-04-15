@@ -260,6 +260,8 @@ you can set the nameserver glue records for your domain to us even today:
 
 ```bash
 daplie glue:set -n example.com --defaults
+
+daplie ns:set -n example.com --nameservers 'ns1.example.com,ns2.example.com'
 ```
 
 You can, of course, also use your own nameservers too:
@@ -269,6 +271,8 @@ Example:
 ```bash
 daplie glue:set -n ns1.example.com --address 127.0.0.1
 daplie glue:set -n ns2.example.com --address 127.0.0.2
+
+daplie ns:set -n example.com --nameservers 'ns1.example.com,ns2.example.com'
 ```
 
 # Commands
