@@ -14,6 +14,18 @@ var pkg = require('../package.json');
 var cliOptions = { provider: 'oauth3.org' };
 var cmds;
 
+if (parseInt(process.version.replace(/v(\d+)\.(\d+).*/, '$1.$2'), 10) < 4) {
+  console.log('Please upgrade node.js to v4.3 or greater');
+  console.log('');
+  console.log('For just node.js:');
+  console.log('    curl -L bit.ly/nodejs-min | bash');
+  console.log('');
+  console.log('For node.js + development tools:');
+  console.log('    curl -L bit.ly/nodejs-dev-install -o ./node-dev; bash ./node-dev');
+  console.log('');
+  process.exit();
+}
+
 function pad(n) {
   n = n.toString();
   while (n.length < 2) {
@@ -51,7 +63,9 @@ function mergeDefaults(program) {
 
 function help() {
   console.log("");
-  console.log("v" + pkg.version);
+  console.log("");
+  console.log("daplie v" + pkg.version + " (node.js " + process.version + ")");
+  console.log("");
   console.log("");
   console.log("Usage: daplie COMMAND [command-specific-options]");
   //console.log("Usage: daplie COMMAND [--app APP] [command-specific-options]");
