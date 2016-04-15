@@ -91,6 +91,8 @@ In theory it'll work. Let us know. :)
 
 * I have **a lot of users**, How can I "resell" my domain as Dynamic DNS?
 
+* Can I use vanity nameservers?
+
 ## Get a daplie.me subdomain
 
 In short, you just enter the purchase console, type the domain you want, and end with `.daplie.me`:
@@ -160,15 +162,32 @@ daplie domains:search --domainnames 'example.com:^%efea$#!0,example.net:afe187e7
 ```
 
 1. It will take 1-10 days for the transfer to complete
-2. You must update your nameservers once the transfer completes
+2. Make sure that you have added your DNS records to our nameservers (See Manage DNS section below)
+3. You must update the nameservers once the transfer completes
+4. Wait anywhere between a few minutes and a few days for the changes to propagate
 
 Example:
 
 ```bash
+# Set the nameservers to Daplie defaults
 daplie ns:set -n example.com --defaults
 ```
 
 DO NOT DO THIS until you've copied the DNS records over (see the next section **Manage DNS**)
+
+Or set custom nameservers like this:
+
+```bash
+# See the help
+daplie help ns
+daplie help ns:set
+
+# See the current nameservers
+daplie ns:list -n example.com
+
+# Set vanity nameservers
+daplie ns:set -n example.com --nameservers 'ns1.example.com,ns2.example.com'
+```
 
 ## Manage DNS with Servers (Digital Ocean, Azure, AWS, etc)
 
@@ -223,6 +242,34 @@ You could offer your subdomains to your users in the same way that we offer `dap
 for our users.
 
 Right now that's a manual process. If you're interested contact aj@daplie.com.
+
+## Vanity Nameservers
+
+More often than not, the company that you pay for your domain will set your nameservers
+automatically to promote their brand, something like: `ns1.domainregistrar.com`, `ns2.domainregistrar.com`.
+
+Vanity Nameservers promote your brand instead. So if you own `example.com` you would want the nameservers
+`ns1.example.com`, `ns2.example.com`, etc.
+
+Right now Daplie Domains uses generically branded nameservers,
+but we plan to move to completely using Vanity Nameservers before our public launch.
+
+To play with Vanity Nameservers
+(WARNING: you may experience dns resolution issues while we are still in development)
+you can set the nameserver glue records for your domain to us even today:
+
+```bash
+daplie glue:set -n example.com --defaults
+```
+
+You can, of course, also use your own nameservers too:
+
+Example:
+
+```bash
+daplie glue:set -n ns1.example.com --address 127.0.0.1
+daplie glue:set -n ns2.example.com --address 127.0.0.2
+```
 
 # Commands
 
