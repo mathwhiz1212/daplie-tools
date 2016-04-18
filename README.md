@@ -77,21 +77,21 @@ In theory it'll work. Let us know. :)
 
 # Walkthroughs & FAQs
 
-* How do I get a **`daplie.me` domain**?
+* [How do I get a **`daplie.me` domain**?](#get-a-daplieme-subdomain)
 
-* How do I **purchase a domain**?
+* [How do I **purchase a domain**?](#purchase-your-own-com-org-net-etc)
 
-* How do I **transfer a domain**?
+* [How do I **transfer a domain**?](#transfer-a-domain)
 
-* How do I use **Dynamic DNS** with **Raspberry Pi**, etc?
+* [How do I use **Dynamic DNS** with **Raspberry Pi**, etc?](#dynamic-dns-with-raspberry-pi-router-cron-etc)
 
-* How do I **Manage DNS** with **Digital Ocean, Azure, AWS**, etc?
+* [How do I **Manage DNS** with **Digital Ocean, Azure, AWS**, etc?](#manage-dns-with-servers-digital-ocean-azure-aws-etc)
 
-* Why do you require a Credit Card and address information for `daplie.me` subdomains?
+* [Why do you require a Credit Card and address information for `daplie.me` subdomains?](#why-do-we-require-a-credit-card)
 
-* I have **a lot of users**, How can I "resell" my domain as Dynamic DNS?
+* [I have **a lot of users**, How can I "resell" my domain as Dynamic DNS?](#white-label-subdomains-andor-dynamic-dns)
 
-* Can I use vanity nameservers?
+* [Can I use vanity nameservers?](#vanity-nameservers)
 
 ## Get a daplie.me subdomain
 
@@ -208,7 +208,7 @@ daplie dns:set -n mail.example.com --type CNAME --answer mailgun.org --ttl 3600
 
 Note: (ANAME and FWD records are not yet supported)
 
-## Dyanmic DNS with Raspberry Pi, Router, cron, etc
+## Dynamic DNS with Raspberry Pi, Router, cron, etc
 
 1. Set ip address to each device (names are arbitrary)
 2. Set the device to corresponding domains
