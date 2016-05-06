@@ -65,15 +65,16 @@ If you don't want to use the scripts you can always download node.js here: https
 
 ## Windows
 
-**completely untested**
-
-Download the installer from https://nodejs.org/en/download/
+Download and install the node.js installer from <https://nodejs.org/en/download/>
 
 ```bash
 npm install -g daplie-tools
 ```
 
-In theory it'll work. Let us know. :)
+Windows is not as well tested, but our goal is to make it a first-class citizen,
+so please open issues for anything that doesn't work as you expect.
+I just got a Surface Book (yay!) so hopefully I'll find the bugs before you do.
+We shall see.
 
 # Walkthroughs & FAQs
 
