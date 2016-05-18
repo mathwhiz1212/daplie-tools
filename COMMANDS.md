@@ -52,6 +52,16 @@ To login with your OAuth3 credentials run:
 
 `daplie domains:attach`
 
+
+####Example: 
+
+`daplie devices:attach -d 'devicename' -n 'domainname'`
+
 ##Detach Device
 
 `daplie domains:detach`
+
+
+####Example: 
+
+`daplie devices:detach -d 'devicename' -n 'domainname'`
