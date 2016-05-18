@@ -11,7 +11,7 @@ That's what we're doing and that's what these tools are for.
 `daplie-tools` is a CLI suite of tools for managing Internet infrastructure:
 
 * Manage Domains
-  * purchaes your own domain
+  * purchase your own domain
   * transfer from your current registrar
   * get a `daplie.me` subdomain
 
@@ -120,7 +120,7 @@ and I'll help you get your own domain set up for your users.
 
 1. Open the purchase console
 2. Type the name of the domain you want
-3. If it is not available the price turn into `N/A`
+3. If it is not available the price turns into `N/A`
 4. Follow the prompts once you find an available domain
 
 ```bash
@@ -192,7 +192,7 @@ daplie ns:set -n example.com --nameservers 'ns1.example.com,ns2.example.com'
 
 ## Manage DNS with Servers (Digital Ocean, Azure, AWS, etc)
 
-1. Set ip address to each device (names are arbitrary)
+1. Set IP address to each device (names are arbitrary)
 2. Set the device to corresponding domains
 3. Set non-device records
 
@@ -211,7 +211,7 @@ Note: (ANAME and FWD records are not yet supported)
 
 ## Dynamic DNS with Raspberry Pi, Router, cron, etc
 
-1. Set ip address to each device (names are arbitrary)
+1. Set IP address to each device (names are arbitrary)
 2. Set the device to corresponding domains
 3. Set non-device records
 
@@ -223,8 +223,8 @@ daplie devices:attach --device 'rpi2' -n 'example.com'
 daplie devices:token --device 'rpi2'
 ```
 
-Now schedule `cron` with a script to check your ip address every 5 minutes or so
-and then run `curl` with the url+token if the ip has changed.
+Now schedule `cron` with a script to check your IP address every 5 minutes or so
+and then run `curl` with the url+token if the IP has changed.
 
 Note: (A more comprehensive `devices:update` method will be implemented soon)
 
@@ -256,7 +256,7 @@ Right now Daplie Domains uses generically branded nameservers,
 but we plan to move to completely using Vanity Nameservers before our public launch.
 
 To play with Vanity Nameservers
-(WARNING: you may experience dns resolution issues while we are still in development)
+(WARNING: you may experience DNS resolution issues while we are still in development)
 you can set the nameserver glue records for your domain to us even today:
 
 ```bash
@@ -292,7 +292,7 @@ When it goes into RC is when we'll try to keep all of the command flags the same
 
 The format is: `v<major.minor.patch>-<class>+<build>`
 
-More information avaliable at <a href="http://semver.org"> http://semver.org/</a>
+More information is available at <a href="http://semver.org"> http://semver.org/</a>
 
 # License
 
